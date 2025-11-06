@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'screens/home.dart'; // Import your new home page
 
 void main() {
   runApp(const DWKApp());
@@ -13,21 +13,15 @@ class DWKApp extends StatelessWidget {
     return MaterialApp(
       title: 'Digitale Wortkette Client',
       theme: ThemeData(primarySwatch: Colors.deepPurple),
-      home: const DWKHomePage(),
+      home: const DWKHomePage(), // points to another file
     );
   }
 }
 
-class DWKHomePage extends StatefulWidget {
-  const DWKHomePage({super.key});
+//import 'package:http/http.dart' as http;
 
-  @override
-  State<DWKHomePage> createState() => _DWKHomePageState();
-}
-
-class _DWKHomePageState extends State<DWKHomePage> {
-  String _response = 'Press a button to call your Flask API';
-  String _hello = 'hello';
+// this is important for later when connecting to the flask api with method outputs
+/*String _response = 'Press a button to call your Flask API';
 
   // 🧠 Adjust the base URL depending on your setup
   // For Android emulator → 10.0.2.2
@@ -55,41 +49,10 @@ class _DWKHomePageState extends State<DWKHomePage> {
         _response = 'Failed to connect: $e';
       });
     }
-  }
+  }*/
 
-  // method for changing hello to world and back
-  Future<void> _helloChange(String input) async {
-    try {
-      if (input == 'hello') {
-        setState(() {
-          _hello = 'world';
-        });
-      } else if (input == 'world') {
-        setState(() {
-          _hello = 'hello';
-        });
-      } else {
-        setState(() {
-          _hello = 'not able to change';
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _hello = 'Fail of changing text';
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Digitale Wortkette (Flask Test)'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
+// this is important for later when connecting to the flask api for the screen
+  /*children: [
             ElevatedButton(
               onPressed: () => _callEndpoint('/api/v1/dwk/home'),
               child: const Text('GET /api/v1/dwk/home'),
@@ -103,13 +66,6 @@ class _DWKHomePageState extends State<DWKHomePage> {
             ElevatedButton(
               onPressed: () => _callEndpoint('/temp'),
               child: const Text('GET /temp (UserModel Resource)'),
-            ),
-            const SizedBox(height: 8),
-
-            // Button to change hello to world 
-            ElevatedButton(
-              onPressed: () => _helloChange(_hello), 
-              child: const Text('Change hello to world and back'),
             ),
             const SizedBox(height: 16),
             const Text('Response:', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -131,12 +87,4 @@ class _DWKHomePageState extends State<DWKHomePage> {
                 ),
               ),
             ),
-            Text(
-              _hello, 
-              style: const TextStyle(fontFamily: 'monospace'),)
-          ],
-        ),
-      ),
-    );
-  }
-}
+          ],*/
