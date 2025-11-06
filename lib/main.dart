@@ -57,6 +57,7 @@ class _DWKHomePageState extends State<DWKHomePage> {
     }
   }
 
+  // method for changing hello to world and back
   Future<void> _helloChange(String input) async {
     try {
       if (input == 'hello') {
