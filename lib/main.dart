@@ -27,6 +27,7 @@ class DWKHomePage extends StatefulWidget {
 
 class _DWKHomePageState extends State<DWKHomePage> {
   String _response = 'Press a button to call your Flask API';
+  String _hello = 'hello';
 
   // 🧠 Adjust the base URL depending on your setup
   // For Android emulator → 10.0.2.2
@@ -56,6 +57,28 @@ class _DWKHomePageState extends State<DWKHomePage> {
     }
   }
 
+  Future<void> _helloChange(String input) async {
+    try {
+      if (input == 'hello') {
+        setState(() {
+          _hello = 'world';
+        });
+      } else if (input == 'world') {
+        setState(() {
+          _hello = 'hello';
+        });
+      } else {
+        setState(() {
+          _hello = 'not able to change';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _hello = 'Fail of changing text';
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -80,6 +103,13 @@ class _DWKHomePageState extends State<DWKHomePage> {
               onPressed: () => _callEndpoint('/temp'),
               child: const Text('GET /temp (UserModel Resource)'),
             ),
+            const SizedBox(height: 8),
+
+            // Button to change hello to world 
+            ElevatedButton(
+              onPressed: () => _helloChange(_hello), 
+              child: const Text('Change hello to world and back'),
+            ),
             const SizedBox(height: 16),
             const Text('Response:', style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
@@ -100,6 +130,9 @@ class _DWKHomePageState extends State<DWKHomePage> {
                 ),
               ),
             ),
+            Text(
+              _hello, 
+              style: const TextStyle(fontFamily: 'monospace'),)
           ],
         ),
       ),
