@@ -1,3 +1,5 @@
+Everything is from the viewpoint of the Page
+
 ### 1. Startseite
 
 **Route:** `/`
@@ -173,6 +175,118 @@
 | `/manual`                 | GET      | Show rules                    |
 | `/scan-qr`                | GET      | Scan to join                  |
 
+
+## All endpoints with GET/POST values
+
+Endpoint: **/**:
+**GET**:
+  1. List of the open Lobbys (json)
+    1. hostName (string)
+    2. lobbyID (int)
+    3. subject (string)
+
 ---
 
-Would you like me to also include a **visual flow diagram** (like a page-to-page map) or a **suggested Flask blueprint structure** (e.g. `/game`, `/lobby`, `/user` blueprints)?
+Endpoint: **/host-lobby**
+**GET**:
+  1. createdLobbyID (int)
+  2. icons/picture for the subjects(?) (Dont know what to use yet)
+  3. subjectName (string)
+  4. generatedQRCode (?) (backend has to tell me what is available for datatypes so i can determine what i can use.) (can use png with [pretty_qr_code](https://pub.dev/packages/pretty_qr_code))
+  5. maxPlayers (int)
+  6. maxGameLength (int) (for displaying purposes it should be int)
+
+**Conditional GET**:
+  1. PlayersConnected (json)
+     1. username (string)
+     2. readyPlayer (bool)
+
+**POST**:
+  1. chosenSubjectName (string)
+  2. chosenGameLength (int)
+  3. chosenMaxPlayer (int)
+
+---
+
+Endpoint: **/join-lobby/<code>**:
+**GET**:
+  1. chosenSubject (string)
+  2. chosenMaxPlayer (int)
+
+**POST**:
+  1. username (string)
+  2. ready (bool)
+
+---
+
+Endpoint: **/lobby/<code>**:
+**GET**:
+  1. PlayersConnected (json)
+     1. username (string)
+     2. readyPlayer (bool)
+
+---
+
+Endpoint: **/start-game/<code>**:
+**POST**:
+  1. startGame (bool)
+  2. firstLetter (string)
+
+---
+
+Endpoint: **/game/<code>**:
+**GET**:
+  1. chosenSubject (string)
+  2. timer (date)
+  3. currentLetter (string)
+  4. previousWords (json)
+     1. wordUsed (string)
+     2. username (string)
+  5. playerStatus (string) (can only be: disconnected, selected, next, connected, suspend round)
+  6. wordsPerMinute (double)
+  7. usableWord (bool)
+
+**POST**:
+  1. wordInput (string)
+
+**Optional POST**:
+  1. playerStatus (string)
+
+---
+
+Endpoint: **/api/game-state/<code>**:
+Has to be determined by backend
+
+---
+
+Endpoint: **/api/submit-word/<code>**:
+Has to be determined by backend
+
+---
+
+Endpoint: **/results/<code>**:
+  1. chosenSubject (string)
+  2. ranks (json)
+     1. username (string)
+     2. points (int)
+  3. achievements (json)
+     1. longestWord (json)
+        1. word (string)
+        2. username (string)
+     2. fastestAnswerUser (string)
+
+---
+
+Endpoint: **/settings**:
+Will be done Later not important for now
+
+---
+
+Endpoint: **/manual**:
+**GET**:
+  1. manual (string)
+
+---
+
+Endpoint: **/scan-qr**:
+Dont know how to implement yet
