@@ -55,6 +55,7 @@ class _OpenGamesListState extends State<OpenGamesList> {
           final game = openGames[index];
           return Card(
             child: ListTile(
+              // uses the parsed json values
               title: Text('Lobby: ${game['lobby']}'),
               subtitle: Text('Thema: ${game['topic']} • Spieler: ${game['players']}'),
             ),
