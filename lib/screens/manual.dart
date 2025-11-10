@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_frontend/Widgets/custom_scaffold.dart';
 import 'package:flutter_frontend/services/navigation.dart';
 import 'package:flutter_frontend/factories/screen_factory.dart';
+import '../Widgets/footer_nav_bar.dart';
 
 class ManualScreen extends StatelessWidget {
   const ManualScreen({super.key});
@@ -18,9 +18,10 @@ class ManualScreen extends StatelessWidget {
           Text('Hello World'),
         )
       ),
+      // usage of the footer bar
       bottomNavigationBar: FooterNavigationBar (
         screenType: ScreenType.manual,
-        onButtonPressed: (type) => handleFooterButton(context, type, ScreenType.manual),
+        onButtonPressed: (type) => handleFooterButton(context, type),
       ),
     );
   }

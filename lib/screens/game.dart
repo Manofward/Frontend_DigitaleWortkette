@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_frontend/Widgets/custom_scaffold.dart';
 import '../services/navigation.dart';
 import '../factories/screen_factory.dart';
+import '../Widgets/footer_nav_bar.dart';
 
 class GameScreen extends StatelessWidget {
   const GameScreen({super.key});
@@ -13,9 +13,10 @@ class GameScreen extends StatelessWidget {
       body: const Center(
         child: Text('Game started!'),
       ),
+      // usage of the footer bar
       bottomNavigationBar: FooterNavigationBar(
         screenType: ScreenType.game,
-        onButtonPressed: (type) => handleFooterButton(context, type, ScreenType.game),
+        onButtonPressed: (type) => handleFooterButton(context, type),
       ),
     );
   }
