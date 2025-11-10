@@ -1,76 +1,88 @@
 import 'package:flutter/material.dart';
 import 'api_service.dart';
 import '../factories/screen_factory.dart';
-import '../factories/footer_factory.dart';
+import '../Widgets/footer_nav_bar.dart';
 
-/// Handles in-app navigation using Navigator and the ScreenFactory
+// This class has the navigation methods
 class NavigationService {
-  /// Navigate to a new screen (replaces current route)
-  static void goTo(BuildContext context, ScreenType screen) {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => ScreenFactory.createScreen(screen)),
-    );
+  static void navigate(BuildContext context, ScreenType screen) {
+    final currentRoute = ModalRoute.of(context);
+    // when you press the button for the page your already on
+    if (currentRoute?.settings.name == screen.name) {
+      debugPrint("Already on ${screen.name}, not navigating.");
+      return;
+    }
+
+    // If navigating to "home" or "manual", replace; else push
+    if (screen == ScreenType.home || screen == ScreenType.manual) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ScreenFactory.createScreen(screen),
+          settings: RouteSettings(name: screen.name),
+        ),
+      );
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ScreenFactory.createScreen(screen),
+          settings: RouteSettings(name: screen.name),
+        ),
+      );
+    }
   }
 
-  /// Push a new screen on top of the current one
-  static void push(BuildContext context, ScreenType screen) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => ScreenFactory.createScreen(screen)),
-    );
-  }
-
-  /// Go back to previous screen
   static void goBack(BuildContext context) {
-    Navigator.pop(context);
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    }
   }
 }
 
-/// Example function combining API + Navigation
+/// This function has to be changed later on so that when creating the game you use a get/post from api_service.dart
 Future<void> createGame(BuildContext context) async {
   final response = await ApiService.post('create_game', {'player': 'Alice'});
   if (response != null) {
     debugPrint('Game created: $response');
     // After creating game, navigate to the game screen
-    NavigationService.goTo(context, ScreenType.game);
+    NavigationService.navigate(context, ScreenType.game);
   }
 }
 
+// this Method handles the footer button navigation
+// For example i want to go from home to manual which works. But i cant go from home to home
 Future<void> handleFooterButton(
     BuildContext context,
     FooterButtonType type,
-    ScreenType currentScreen,
 ) async {
-  // Map of handlers for each screen
-  final Map<FooterButtonType, Future<void> Function()> handlers = {
-    FooterButtonType.settings: () async {
-      debugPrint("${currentScreen.name} - Einstellungen geöffnet");
-    },
-    FooterButtonType.manual: () async {
-      NavigationService.push(context, ScreenType.manual);
-      debugPrint("${currentScreen.name} - Anleitung geöffnet");
-    },
-    FooterButtonType.home: () async {
-      if (currentScreen == ScreenType.game) {
-        await _confirmLeaveGame(context);
-      } else if (currentScreen != ScreenType.game || currentScreen != ScreenType.home) {
-        // here needs to be the linking to go to the manual page
-        NavigationService.goBack(context);
-      } else {
-        debugPrint("Bereits auf der Startseite");
-      }
-    },
-    FooterButtonType.qrScanner: () async {
-      if (currentScreen == ScreenType.home) {
-        debugPrint("QR-Code Scanner geöffnet");
-      }
-    },
-  };
+  final currentRouteName = ModalRoute.of(context)?.settings.name;
 
-  // Call the handler if it exists
-  final action = handlers[type];
-  if (action != null) await action();
+  switch (type) {
+    case FooterButtonType.settings:
+      debugPrint("$currentRouteName - Einstellungen geöffnet");
+      break;
+
+    case FooterButtonType.manual:
+      NavigationService.navigate(context, ScreenType.manual);
+      break;
+
+    case FooterButtonType.home:
+      if (currentRouteName == ScreenType.game.name) {
+        await _confirmLeaveGame(context);
+      } else {
+        NavigationService.navigate(context, ScreenType.home);
+      }
+      break;
+
+    case FooterButtonType.qrScanner:
+      if (currentRouteName == ScreenType.home.name) {
+        debugPrint("QR-Code Scanner geöffnet");
+      } else {
+        debugPrint("QR-Code Scanner nur auf der Startseite verfügbar");
+      }
+      break;
+  }
 }
 
 /// Shows a dialog to confirm leaving the game
@@ -95,6 +107,6 @@ Future<void> _confirmLeaveGame(BuildContext context) async {
   );
 
   if (leave == true) {
-    NavigationService.goTo(context, ScreenType.home);
+    NavigationService.navigate(context, ScreenType.home);
   }
 }
