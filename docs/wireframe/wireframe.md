@@ -26,7 +26,7 @@ Lobby host
 | - Jamie                           |
 | - …                               |
 -------------------------------------
-| Footer: [< Zurück] [⚙️ Einstellungen] [📖  Anleitung]|
+| Footer: [⚙️ Einstellungen] [📖  Anleitung]|
 -------------------------------------
 
 Join Lobby
