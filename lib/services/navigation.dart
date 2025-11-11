@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'api_service.dart';
 import '../factories/screen_factory.dart';
 import '../Widgets/footer_nav_bar.dart';
+import 'api_service.dart';
 
 // This class has the navigation methods
 class NavigationService {
-  static void navigate(BuildContext context, ScreenType screen) {
+  static void navigate(BuildContext context, ScreenType screen, {Map<String, dynamic>? arguments} ) {
     final currentRoute = ModalRoute.of(context);
     // when you press the button for the page your already on
     if (currentRoute?.settings.name == screen.name) {
@@ -18,16 +18,16 @@ class NavigationService {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) => ScreenFactory.createScreen(screen),
-          settings: RouteSettings(name: screen.name),
+          builder: (_) => ScreenFactory.createScreen(screen, arguments: arguments),
+          settings: RouteSettings(name: screen.name, arguments: arguments),
         ),
       );
     } else {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => ScreenFactory.createScreen(screen),
-          settings: RouteSettings(name: screen.name),
+          builder: (_) => ScreenFactory.createScreen(screen, arguments: arguments),
+          settings: RouteSettings(name: screen.name, arguments: arguments),
         ),
       );
     }
@@ -37,16 +37,6 @@ class NavigationService {
     if (Navigator.canPop(context)) {
       Navigator.pop(context);
     }
-  }
-}
-
-/// This function has to be changed later on so that when creating the game you use a get/post from api_service.dart
-Future<void> createGame(BuildContext context) async {
-  final response = await ApiService.post('create_game', {'player': 'Alice'});
-  if (response != null) {
-    debugPrint('Game created: $response');
-    // After creating game, navigate to the game screen
-    NavigationService.navigate(context, ScreenType.game);
   }
 }
 
@@ -108,5 +98,27 @@ Future<void> _confirmLeaveGame(BuildContext context) async {
 
   if (leave == true) {
     NavigationService.navigate(context, ScreenType.home);
+  }
+}
+
+Future<void> createGame(BuildContext context) async {
+  final response = await ApiService.createGameGet();
+
+  if (response != null) {
+    NavigationService.navigate(
+      context,
+      ScreenType.hostLobby,
+      arguments: {
+        'createdLobbyID': int.tryParse(response['createdLobbyID'].toString()) ?? 0,
+        'subjects': response['subjects'], // this is a list, leave as-is
+        'maxPlayers': int.tryParse(response['maxPlayers'].toString()) ?? 0,
+        'maxGameLength': int.tryParse(response['maxGameLength'].toString()) ?? 0,
+        'generatedQRCode': response['generatedQRCode'].toString(),
+      },
+    );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Fehler beim Erstellen des Spiels')),
+    );
   }
 }
