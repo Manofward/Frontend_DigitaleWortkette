@@ -44,10 +44,10 @@ class ApiService {
     //return await get('');
     return {
       "open_games": [
-        {"lobby": "Lobby 1", "topic": "Tiere", "players": 3},
-        {"lobby": "Lobby 2", "topic": "Städte", "players": 5},
-        {"lobby": "Lobby 3", "topic": "Filme", "players": 2},
-        {"lobby": "Lobby 4", "topic": "Technik", "players": 4},
+        {"lobby": "1", "topic": "Tiere", "players": 3},
+        {"lobby": "2", "topic": "Städte", "players": 5},
+        {"lobby": "3", "topic": "Filme", "players": 2},
+        {"lobby": "4", "topic": "Technik", "players": 4},
       ]
     };
   }
