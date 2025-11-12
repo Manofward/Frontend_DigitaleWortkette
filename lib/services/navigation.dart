@@ -4,27 +4,67 @@ import '../Widgets/footer_nav_bar.dart';
 import 'api_service.dart';
 
 class NavigationService {
+  /// Keep single instances of non-Home pages
+  static final Map<ScreenType, Widget> _pageInstances = {};
+
   static void navigate(BuildContext context, ScreenType screen,
-      {Map<String, dynamic>? arguments, bool replaceIfHome = true}) {
+      {Map<String, dynamic>? arguments}) {
+    
     final currentRoute = ModalRoute.of(context);
     if (currentRoute?.settings.name == screen.name) return;
 
+    // Home: always single instance, clears the stack
+    if (screen == ScreenType.home) {
+      final route = MaterialPageRoute(
+        builder: (_) => ScreenFactory.createScreen(screen, arguments: arguments),
+        settings: RouteSettings(name: screen.name, arguments: arguments),
+      );
+      Navigator.pushAndRemoveUntil(context, route, (r) => false);
+      return;
+    }
+
+    // HostLobby: single instance like Home, but keep previous stack
+    if (screen == ScreenType.hostLobby) {
+      Widget page;
+      if (_pageInstances.containsKey(screen)) {
+        page = _pageInstances[screen]!;
+      } else {
+        page = ScreenFactory.createScreen(screen, arguments: arguments);
+        _pageInstances[screen] = page;
+      }
+
+      final route = MaterialPageRoute(
+        builder: (_) => page,
+        settings: RouteSettings(name: screen.name, arguments: arguments),
+      );
+
+      // Remove any existing HostLobby in the stack
+      Navigator.pushAndRemoveUntil(context, route, (r) => r.settings.name != ScreenType.hostLobby.name);
+      return;
+    }
+
+    // Other pages: reuse existing instance if available
+    Widget page;
+    if (_pageInstances.containsKey(screen)) {
+      page = _pageInstances[screen]!;
+    } else {
+      page = ScreenFactory.createScreen(screen, arguments: arguments);
+      _pageInstances[screen] = page;
+    }
+
     final route = MaterialPageRoute(
-      builder: (_) => ScreenFactory.createScreen(screen, arguments: arguments),
+      builder: (_) => page,
       settings: RouteSettings(name: screen.name, arguments: arguments),
     );
 
-    if (replaceIfHome && (screen == ScreenType.home || screen == ScreenType.manual)) {
-      Navigator.pushReplacement(context, route);
-    } else {
-      Navigator.push(context, route);
-    }
+    Navigator.push(context, route);
   }
 
   static void goBack(BuildContext context) {
     if (Navigator.canPop(context)) Navigator.pop(context);
   }
 }
+
 
 /// Handles footer button taps
 Future<void> handleFooterButton(BuildContext context, FooterButtonType type) async {
