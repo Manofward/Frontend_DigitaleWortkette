@@ -3,122 +3,59 @@ import '../factories/screen_factory.dart';
 import '../Widgets/footer_nav_bar.dart';
 import 'api_service.dart';
 
-// This class has the navigation methods
 class NavigationService {
-  static void navigate(BuildContext context, ScreenType screen, {Map<String, dynamic>? arguments} ) {
+  static void navigate(BuildContext context, ScreenType screen,
+      {Map<String, dynamic>? arguments, bool replaceIfHome = true}) {
     final currentRoute = ModalRoute.of(context);
-    // when you press the button for the page your already on
-    if (currentRoute?.settings.name == screen.name) {
-      debugPrint("Already on ${screen.name}, not navigating.");
-      return;
-    }
+    if (currentRoute?.settings.name == screen.name) return;
 
-    // If navigating to "home" or "manual", replace; else push
-    if (screen == ScreenType.home || screen == ScreenType.manual) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => ScreenFactory.createScreen(screen, arguments: arguments),
-          settings: RouteSettings(name: screen.name, arguments: arguments),
-        ),
-      );
+    final route = MaterialPageRoute(
+      builder: (_) => ScreenFactory.createScreen(screen, arguments: arguments),
+      settings: RouteSettings(name: screen.name, arguments: arguments),
+    );
+
+    if (replaceIfHome && (screen == ScreenType.home || screen == ScreenType.manual)) {
+      Navigator.pushReplacement(context, route);
     } else {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => ScreenFactory.createScreen(screen, arguments: arguments),
-          settings: RouteSettings(name: screen.name, arguments: arguments),
-        ),
-      );
+      Navigator.push(context, route);
     }
   }
 
   static void goBack(BuildContext context) {
-    if (Navigator.canPop(context)) {
-      Navigator.pop(context);
-    }
+    if (Navigator.canPop(context)) Navigator.pop(context);
   }
 }
 
-// this Method handles the footer button navigation
-// For example i want to go from home to manual which works. But i cant go from home to home
-Future<void> handleFooterButton(
-    BuildContext context,
-    FooterButtonType type,
-) async {
-  final currentRouteName = ModalRoute.of(context)?.settings.name;
-
+/// Handles footer button taps
+Future<void> handleFooterButton(BuildContext context, FooterButtonType type) async {
   switch (type) {
     case FooterButtonType.settings:
-      debugPrint("$currentRouteName - Einstellungen geöffnet");
+      NavigationService.navigate(context, ScreenType.settings);
       break;
-
     case FooterButtonType.manual:
       NavigationService.navigate(context, ScreenType.manual);
       break;
-
     case FooterButtonType.home:
-      if (currentRouteName == ScreenType.game.name) {
-        await _confirmLeaveGame(context);
-      } else {
-        NavigationService.navigate(context, ScreenType.home);
-      }
+      NavigationService.navigate(context, ScreenType.home);
       break;
-
     case FooterButtonType.qrScanner:
-      if (currentRouteName == ScreenType.home.name) {
-        debugPrint("QR-Code Scanner geöffnet");
-      } else {
-        debugPrint("QR-Code Scanner nur auf der Startseite verfügbar");
-      }
+      NavigationService.navigate(context, ScreenType.scanQr);
       break;
   }
 }
 
-/// Shows a dialog to confirm leaving the game
-Future<void> _confirmLeaveGame(BuildContext context) async {
-  final leave = await showDialog<bool>(
-    context: context,
-    builder: (ctx) => AlertDialog(
-      title: const Text('Spiel verlassen?'),
-      content: const Text(
-          'Bist du sicher, dass du das aktuelle Spiel verlassen möchtest?'),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(ctx, false),
-          child: const Text('Abbrechen'),
-        ),
-        TextButton(
-          onPressed: () => Navigator.pop(ctx, true),
-          child: const Text('Verlassen'),
-        ),
-      ],
-    ),
+/// Example: create lobby and navigate to host lobby
+Future<void> createGame(BuildContext context) async {
+  final response = await ApiService.createLobbyPost(
+    chosenSubjectName: 'Default',
+    chosenGameLength: 10,
+    chosenMaxPlayer: 6,
   );
 
-  if (leave == true) {
-    NavigationService.navigate(context, ScreenType.home);
-  }
-}
-
-Future<void> createGame(BuildContext context) async {
-  final response = await ApiService.createGameGet();
-
   if (response != null) {
-    NavigationService.navigate(
-      context,
-      ScreenType.hostLobby,
-      arguments: {
-        'createdLobbyID': int.tryParse(response['createdLobbyID'].toString()) ?? 0,
-        'subjects': response['subjects'], // this is a list, leave as-is
-        'maxPlayers': int.tryParse(response['maxPlayers'].toString()) ?? 0,
-        'maxGameLength': int.tryParse(response['maxGameLength'].toString()) ?? 0,
-        'generatedQRCode': response['generatedQRCode'].toString(),
-      },
-    );
+    NavigationService.navigate(context, ScreenType.hostLobby, arguments: response);
   } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Fehler beim Erstellen des Spiels')),
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('Error creating game')));
   }
 }

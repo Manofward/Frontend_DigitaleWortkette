@@ -1,43 +1,50 @@
 import 'package:flutter/material.dart';
+
+// Screens
 import '../screens/home.dart';
 import '../screens/game.dart';
 import '../screens/manual.dart';
 import '../screens/host_lobby.dart';
 
-/// Enum to identify available screens
-enum ScreenType { home, game, manual, hostLobby }
+/// Enum for all screens
+enum ScreenType {
+  home,
+  game,
+  manual,
+  hostLobby,
+  joinLobby,
+  results,
+  settings,
+  scanQr,
+}
 
-/// Factory class that creates screens
+/// Modular Screen Factory
 class ScreenFactory {
-  static Widget createScreen(ScreenType type, {Map<String, dynamic>? arguments}) {
-    switch (type) {
-      // homepage case
-      case ScreenType.home:
-        return const DWKHomePage();
-      // game screen case
-      case ScreenType.game:
-        return const GameScreen();
-      // manual case
-      case ScreenType.manual:
-        return const ManualScreen();
-      //host lobby case
-      case ScreenType.hostLobby:
-        final createdLobbyID = int.tryParse(arguments?['createdLobbyID']?.toString() ?? '') ?? 0;
-        final subjects = arguments?['subjects'] ?? [];
-        final maxPlayers = int.tryParse(arguments?['maxPlayers']?.toString() ?? '') ?? 0;
-        final maxGameLength = int.tryParse(arguments?['maxGameLength']?.toString() ?? '') ?? 0;
-        final generatedQRCode = arguments?['generatedQRCode']?.toString() ?? '';
+  static final Map<ScreenType, Widget Function(Map<String, dynamic>? args)> _screens = {
+    ScreenType.home: (_) => const DWKHomePage(),
+    ScreenType.manual: (_) => const ManualScreen(),
+    ScreenType.hostLobby: (args) => HostLobbyPage(data: args ?? {}),
+    ScreenType.game: (args) => GameScreen(code: args?['code'] ?? ''),
+    ScreenType.joinLobby: (_) => const _PlaceholderScreen(title: 'Join Lobby'),
+    ScreenType.results: (_) => const _PlaceholderScreen(title: 'Results'),
+    ScreenType.settings: (_) => const _PlaceholderScreen(title: 'Settings'),
+    ScreenType.scanQr: (_) => const _PlaceholderScreen(title: 'QR Scanner'),
+  };
 
-        return HostLobbyPage(
-          createdLobbyID: createdLobbyID,
-          subjects: subjects, // 👈 this is a list of subjects
-          maxPlayers: maxPlayers,
-          maxGameLength: maxGameLength,
-          generatedQRCode: generatedQRCode,
-        );
-      // Add more screens as needed
-      default:
-        throw Exception('Unknown screen type: $type');
-    }
+  static Widget createScreen(ScreenType type, {Map<String, dynamic>? arguments}) {
+    final builder = _screens[type];
+    if (builder != null) return builder(arguments);
+    throw Exception('Screen not implemented for type: $type');
   }
+}
+
+class _PlaceholderScreen extends StatelessWidget {
+  final String title;
+  const _PlaceholderScreen({required this.title});
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(title: Text(title)),
+        body: Center(child: Text('$title\n(Not implemented yet)', textAlign: TextAlign.center)),
+      );
 }
