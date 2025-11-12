@@ -38,7 +38,7 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
   @override
   void initState() {
     super.initState();
-    createdLobbyID = widget.data['createdLobbyID'] ?? 0;
+    createdLobbyID = widget.data['lobbyID'] ?? 0;
     subjects = widget.data['subjects'] ?? [];
     maxPlayers = widget.data['maxPlayers'] ?? 0;
     maxGameLength = widget.data['maxGameLength'] ?? 0;

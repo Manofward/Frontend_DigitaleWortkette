@@ -48,7 +48,7 @@ class _JoinLobbyPageState extends State<JoinLobbyPage> {
     if (_usernameDebounce?.isActive ?? false) _usernameDebounce!.cancel();
     _usernameDebounce = Timer(const Duration(milliseconds: 500), () {
       ApiService.postJoinLobby(
-        widget.lobbyData['lobbyCode'],
+        widget.lobbyData['lobbyID'],
         username,
         ready,
       );
@@ -59,7 +59,7 @@ class _JoinLobbyPageState extends State<JoinLobbyPage> {
     setState(() => ready = !ready);
 
     await ApiService.postJoinLobby(
-      widget.lobbyData['lobbyCode'],
+      widget.lobbyData['lobbyID'],
       username.isEmpty ? 'Player' : username,
       ready,
     );
@@ -67,7 +67,7 @@ class _JoinLobbyPageState extends State<JoinLobbyPage> {
 
   void _startLobbyPolling() {
     _lobbyTimer = Timer.periodic(const Duration(seconds: 2), (_) async {
-      final updatedLobby = await ApiService.getJoinLobby(widget.lobbyData['lobbyCode']);
+      final updatedLobby = await ApiService.getJoinLobby(widget.lobbyData['lobbyID']);
 
       if (updatedLobby != null) {
         setState(() {

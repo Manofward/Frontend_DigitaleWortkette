@@ -33,7 +33,7 @@ class _OpenGamesListState extends State<OpenGamesList> {
     final data = await ApiService.homepageGet();
     if (mounted) {
       setState(() {
-        openGames = data?['open_games'] as List<dynamic>? ?? [];
+        openGames = data ?? [];
         isLoading = false;
       });
     }
@@ -57,13 +57,13 @@ class _OpenGamesListState extends State<OpenGamesList> {
           return Card(
             child: ListTile(
               // uses the parsed json values
-              title: Text('Lobby: ${game['lobby']}'),
+              title: Text('Lobby: ${game['lobbyID']}'),
               subtitle: Text('Thema: ${game['topic']} • Spieler: ${game['players']}'),
               // new join Game Button for joining a game from the game List
               trailing: IconButton(
                 icon: const Icon(Icons.play_arrow_sharp),
                 tooltip: 'Dem Spiel Beitretten',
-                onPressed: () => joinLobby(context ,game['lobby']),
+                onPressed: () => joinLobby(context ,game['lobbyID']),
               ),
             ),
           );

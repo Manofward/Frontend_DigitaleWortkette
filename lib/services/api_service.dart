@@ -5,7 +5,7 @@ import 'dart:convert';
 class ApiService {
   static const String baseUrl = 'http://10.0.2.2:5000';
 
-  static Future<Map<String, dynamic>?> get(String endpoint) async {
+  static Future<dynamic> get(String endpoint) async {
     try {
       final response = await http.get(Uri.parse('$baseUrl/$endpoint'));
       if (response.statusCode == 200) {
@@ -40,16 +40,14 @@ class ApiService {
   // --------------------------
   // 1. Homepage
   // --------------------------
-  static Future<Map<String, dynamic>?> homepageGet() async {
+  static Future<List<dynamic>?> homepageGet() async {
     //return await get('home');
-    return {
-      "open_games": [
-        {"lobby": "1", "topic": "Tiere", "players": 3},
-        {"lobby": "2", "topic": "Städte", "players": 5},
-        {"lobby": "3", "topic": "Filme", "players": 2},
-        {"lobby": "4", "topic": "Technik", "players": 4},
-      ]
-    };
+    return [
+      {"lobbyID": "1", "topic": "Tiere", "players": 3},
+      {"lobbyID": "2", "topic": "Städte", "players": 5},
+      {"lobbyID": "3", "topic": "Filme", "players": 2},
+      {"lobbyID": "4", "topic": "Technik", "players": 4}
+    ];
   }
 
   // --------------------------
@@ -67,7 +65,7 @@ class ApiService {
     //});
 
     return {
-      "createdLobbyID": 42,
+      "lobbyID": 42,
       "subjects": [
         {"name": "Tiere", "icon": "🐶"},
         {"name": "Städte", "icon": "🌆"},
@@ -121,7 +119,7 @@ class ApiService {
   static Future<Map<String, dynamic>?> getJoinLobby(String code) async {
     //return await get('join-lobby/$code');
     return {
-      "lobbyCode": code,
+      "lobbyID": code,
       "subject": "Tiere",
       "players": [
         {"username": "Alice", "ready": true},
@@ -142,7 +140,7 @@ class ApiService {
   static Future<Map<String, dynamic>?> getLobby(String code) async {
     //return await get('lobby/$code');
     return {
-      "lobbyCode": code,
+      "lobbyID": code,
       "subject": "Städte",
       "players": ["Alice", "Bob", "Charlie"],
       "readyPlayers": 2,
