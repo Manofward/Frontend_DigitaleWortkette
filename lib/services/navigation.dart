@@ -65,7 +65,6 @@ class NavigationService {
   }
 }
 
-
 /// Handles footer button taps
 Future<void> handleFooterButton(BuildContext context, FooterButtonType type) async {
   switch (type) {
@@ -97,5 +96,24 @@ Future<void> createGame(BuildContext context) async {
   } else {
     ScaffoldMessenger.of(context)
         .showSnackBar(const SnackBar(content: Text('Error creating game')));
+  }
+}
+
+Future<void> joinLobby(BuildContext context, String lobbyCode) async {
+  try {
+    final lobbyData = await ApiService.getJoinLobby(lobbyCode);
+
+    if (lobbyData != null) {
+      //Navigate to the lobby screen
+      NavigationService.navigate(context, ScreenType.joinLobby, arguments: lobbyData);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Lobby konnte nicht gefunden werden')),
+      );
+    }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Fehler: $e')),
+    );
   }
 }
