@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_frontend/services/navigation.dart';
 import '../services/api_service.dart';
 
 class OpenGamesList extends StatefulWidget {
@@ -58,6 +59,12 @@ class _OpenGamesListState extends State<OpenGamesList> {
               // uses the parsed json values
               title: Text('Lobby: ${game['lobby']}'),
               subtitle: Text('Thema: ${game['topic']} • Spieler: ${game['players']}'),
+              // new join Game Button for joining a game from the game List
+              trailing: IconButton(
+                icon: const Icon(Icons.play_arrow_sharp),
+                tooltip: 'Dem Spiel Beitretten',
+                onPressed: () => joinLobby(context ,game['lobby']),
+              ),
             ),
           );
         },
