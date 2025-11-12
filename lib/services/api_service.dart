@@ -79,7 +79,8 @@ class ApiService {
     };
   }
 
-  static Future<Map<String, dynamic>?> getHostLobby(int lobbyId) async {
+  // wierd code that isnt used
+  /*static Future<Map<String, dynamic>?> getHostLobby(int lobbyId) async {
     //return await get('host-lobby/$lobbyId');
     return {
       "lobbyId": lobbyId,
@@ -87,7 +88,7 @@ class ApiService {
       "players": 4,
       "maxPlayers": 6,
     };
-  }
+  }*/
 
   static Future<Map<String, dynamic>?> getHostLobbyPlayers(int lobbyId) async {
     //return await get('host-lobby/$lobbyId/players');
