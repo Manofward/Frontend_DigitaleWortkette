@@ -5,6 +5,7 @@ import '../screens/home.dart';
 import '../screens/game.dart';
 import '../screens/manual.dart';
 import '../screens/host_lobby.dart';
+import '../screens/join_lobby.dart';
 
 /// Enum for all screens
 enum ScreenType {
@@ -25,7 +26,7 @@ class ScreenFactory {
     ScreenType.manual: (_) => const ManualScreen(),
     ScreenType.hostLobby: (args) => HostLobbyPage(data: args ?? {}),
     ScreenType.game: (args) => GameScreen(code: args?['code'] ?? ''),
-    ScreenType.joinLobby: (_) => const _PlaceholderScreen(title: 'Join Lobby'),
+    ScreenType.joinLobby: (args) => JoinLobbyPage(lobbyData: args ?? {}),
     ScreenType.results: (_) => const _PlaceholderScreen(title: 'Results'),
     ScreenType.settings: (_) => const _PlaceholderScreen(title: 'Settings'),
     ScreenType.scanQr: (_) => const _PlaceholderScreen(title: 'QR Scanner'),
