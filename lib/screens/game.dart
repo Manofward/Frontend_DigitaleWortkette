@@ -4,16 +4,17 @@ import '../factories/screen_factory.dart';
 import '../Widgets/footer_nav_bar.dart';
 
 class GameScreen extends StatelessWidget {
-  const GameScreen({super.key});
+  final String code;
+
+  const GameScreen({super.key, required this.code});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Game Screen')),
-      body: const Center(
-        child: Text('Game started!'),
+      appBar: AppBar(title: Text('Game Screen - Lobby $code')),
+      body: Center(
+        child: Text('Game started for Lobby: $code'),
       ),
-      // usage of the footer bar
       bottomNavigationBar: FooterNavigationBar(
         screenType: ScreenType.game,
         onButtonPressed: (type) => handleFooterButton(context, type),
