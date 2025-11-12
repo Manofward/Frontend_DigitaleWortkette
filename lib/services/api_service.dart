@@ -41,7 +41,7 @@ class ApiService {
   // 1. Homepage
   // --------------------------
   static Future<Map<String, dynamic>?> homepageGet() async {
-    //return await get('/home');
+    //return await get('home');
     return {
       "open_games": [
         {"lobby": "1", "topic": "Tiere", "players": 3},
