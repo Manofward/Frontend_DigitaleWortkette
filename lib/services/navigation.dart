@@ -9,7 +9,6 @@ class NavigationService {
 
   static void navigate(BuildContext context, ScreenType screen,
       {Map<String, dynamic>? arguments}) {
-    
     final currentRoute = ModalRoute.of(context);
     if (currentRoute?.settings.name == screen.name) return;
 
@@ -23,7 +22,7 @@ class NavigationService {
       return;
     }
 
-    // HostLobby: single instance like Home, but keep previous stack
+    // HostLobby: single instance, keep previous stack
     if (screen == ScreenType.hostLobby) {
       Widget page;
       if (_pageInstances.containsKey(screen)) {
@@ -39,7 +38,8 @@ class NavigationService {
       );
 
       // Remove any existing HostLobby in the stack
-      Navigator.pushAndRemoveUntil(context, route, (r) => r.settings.name != ScreenType.hostLobby.name);
+      Navigator.pushAndRemoveUntil(
+          context, route, (r) => r.settings.name != ScreenType.hostLobby.name);
       return;
     }
 
@@ -83,29 +83,40 @@ Future<void> handleFooterButton(BuildContext context, FooterButtonType type) asy
   }
 }
 
-/// Example: create lobby and navigate to host lobby
+/// Example: create a new lobby and navigate to HostLobby page
+/// Example: create a new lobby and navigate to HostLobby page
 Future<void> createGame(BuildContext context) async {
-  final response = await ApiService.createLobbyPost(
-    chosenSubjectName: 'Default',
-    chosenGameLength: 10,
-    chosenMaxPlayer: 6,
+  final response = await ApiService.createLobby(
+    subject: 'Default',
+    maxGameLength: 10,
+    maxPlayers: 6,
   );
 
   if (response != null) {
-    NavigationService.navigate(context, ScreenType.hostLobby, arguments: response);
+    NavigationService.navigate(
+      context,
+      ScreenType.hostLobby,
+      arguments: response,
+    );
   } else {
     ScaffoldMessenger.of(context)
         .showSnackBar(const SnackBar(content: Text('Error creating game')));
   }
 }
 
+
+/// Join an existing lobby by code
 Future<void> joinLobby(BuildContext context, String lobbyCode) async {
   try {
-    final lobbyData = await ApiService.getJoinLobby(lobbyCode);
+    final lobbyData = await ApiService.getLobby(lobbyCode);
 
     if (lobbyData != null) {
-      //Navigate to the lobby screen
-      NavigationService.navigate(context, ScreenType.joinLobby, arguments: lobbyData);
+      // Navigate to the join lobby screen with the data
+      NavigationService.navigate(
+        context,
+        ScreenType.joinLobby,
+        arguments: lobbyData,
+      );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Lobby konnte nicht gefunden werden')),
@@ -117,3 +128,4 @@ Future<void> joinLobby(BuildContext context, String lobbyCode) async {
     );
   }
 }
+

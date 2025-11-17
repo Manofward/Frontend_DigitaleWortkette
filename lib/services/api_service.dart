@@ -3,135 +3,139 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class ApiService {
-  static const String baseUrl = 'http://10.0.2.2:5000';
+  static const String baseUrl = 'http://10.0.2.2:5000/api/v1/dwk';
 
+  // Basic GET
   static Future<dynamic> get(String endpoint) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/$endpoint'));
-      if (response.statusCode == 200) {
-        return jsonDecode(response.body);
-      } else {
-        debugPrint('GET $endpoint failed: ${response.statusCode}');
+      final res = await http.get(Uri.parse('$baseUrl/$endpoint'));
+
+      if (res.statusCode == 200) {
+        return jsonDecode(res.body);
       }
+
+      if (res.statusCode == 204) {
+        return [];
+      }
+
+      return null;
     } catch (e) {
-      debugPrint('GET request error: $e');
+      debugPrint("GET error: $e");
+      return null;
     }
-    return null;
   }
 
-  static Future<Map<String, dynamic>?> post(String endpoint, Map<String, dynamic> data) async {
+  // Basic POST (form-data)
+  static Future<dynamic> post(String endpoint, Map<String, dynamic> data) async {
     try {
-      final response = await http.post(
+      final res = await http.post(
         Uri.parse('$baseUrl/$endpoint'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(data),
+        body: data, // backend expects form-data, not json
       );
-      if (response.statusCode == 200) {
-        return jsonDecode(response.body);
-      } else {
-        debugPrint('POST $endpoint failed: ${response.statusCode}');
+
+      if (res.statusCode == 200 || res.statusCode == 201) {
+        return jsonDecode(res.body);
       }
+
+      return null;
     } catch (e) {
-      debugPrint('POST request error: $e');
+      debugPrint("POST error: $e");
+      return null;
     }
-    return null;
   }
 
   // --------------------------
   // 1. Homepage
   // --------------------------
-  static Future<List<dynamic>?> homepageGet() async {
-    //return await get('home');
-    return [
-      {"lobbyID": "1", "topic": "Tiere", "players": 3},
-      {"lobbyID": "2", "topic": "Städte", "players": 5},
-      {"lobbyID": "3", "topic": "Filme", "players": 2},
-      {"lobbyID": "4", "topic": "Technik", "players": 4}
-    ];
+  static Future<List<dynamic>> homepageGet() async {
+    final res = await get("home");
+
+    if (res == null || res is List && res.isEmpty) {
+      return [];
+    }
+
+    return (res as List).map((e) => {
+          "lobbyID": e["lobbyID"],
+          "topic": e["subjectName"],
+          "players": e["maxPlayers"],
+        }).toList();
   }
 
   // --------------------------
   // 2. Host Lobby
   // --------------------------
-  static Future<Map<String, dynamic>?> createLobbyPost({
-    required String chosenSubjectName,
-    required int chosenGameLength,
-    required int chosenMaxPlayer,
+
+  static Future<Map<String, dynamic>?> createLobby({
+    required String subject,
+    required int maxGameLength,
+    required int maxPlayers,
   }) async {
-    //return await post('host-lobby', {
-    //   'chosenSubjectName': chosenSubjectName,
-    //   'chosenGameLength': chosenGameLength,
-    //   'chosenMaxPlayer': chosenMaxPlayer,
-    //});
+    final res = await post("host-lobby", {
+      "subject": subject,
+      "maxGameLength": maxGameLength.toString(),
+      "maxPlayers": maxPlayers.toString(),
+    });
+
+    if (res == null) return null;
 
     return {
-      "lobbyID": 42,
+      "lobbyID": res["lobbyID"],
       "subjects": [
-        {"name": "Tiere", "icon": "🐶"},
-        {"name": "Städte", "icon": "🌆"},
-        {"name": "Filme", "icon": "🎬"},
+        {"name": res["subjectName"]}
       ],
-      "maxPlayers": chosenMaxPlayer,
-      "maxGameLength": chosenGameLength,
-      "generatedQRCode": "https://example.com/qr/lobby42",
+      "generatedQRCode": res["generatedQRCode"],
+      "maxPlayers": res["maxPlayers"],
+      "maxGameLength": res["maxGameLength"],
     };
   }
 
-  // wierd code that isnt used
-  /*static Future<Map<String, dynamic>?> getHostLobby(int lobbyId) async {
-    //return await get('host-lobby/$lobbyId');
-    return {
-      "lobbyId": lobbyId,
-      "subject": "Tiere",
-      "players": 4,
-      "maxPlayers": 6,
-    };
-  }*/
+  static Future<List<Map<String, dynamic>>> getHostLobbyPlayers() async {
+    final res = await get("host-lobby");
 
-  static Future<Map<String, dynamic>?> getHostLobbyPlayers(int lobbyId) async {
-    //return await get('host-lobby/$lobbyId/players');
+    if (res == null || res is List && res.isEmpty) return [];
+
+    return List<Map<String, dynamic>>.from(
+      (res as List).map((p) => {
+            "username": p["username"],
+            "isPlayerReady": p["isPlayerReady"],
+          }),
+    );
+  }
+
+  static Future<Map<String, dynamic>> getHostLobbyOptions() async {
     return {
-      "players": [
-        {"username": "Alice", "readyPlayer": true},
-        {"username": "Bob", "readyPlayer": false},
-        {"username": "Charlie", "readyPlayer": true},
-      ]
+      "availableSubjects": ["Tiere", "Städte", "Flüsse"],
+      "availableMaxPlayers": [5, 10, 15, 20, 25],
+      "availableGameLengths": [5, 10, 15, 20],
     };
   }
 
-  static Future<Map<String, dynamic>?> getHostLobbyOptions(int lobbyId) async {
-    //return await get('host-lobby/$lobbyId/options');
-    return {
-      "availableSubjects": ["Tiere", "Städte", "Filme"],
-      "availableMaxPlayers": [2, 4, 6, 8],
-      "availableGameLengths": [5, 10, 15],
-    };
-  }
-
-  static Future<void> updateHostLobbySetting(int lobbyId, Map<String, dynamic> data) async {
-    //await post('host-lobby/$lobbyId/update', data);
-    debugPrint('Dummy updateHostLobbySetting called with $data');
+  static Future<void> updateHostLobbySetting(Map<String, dynamic> data) async {
+    await post("host-lobby", data);
   }
 
   // --------------------------
   // 3. Join Lobby
   // --------------------------
-  static Future<Map<String, dynamic>?> getJoinLobby(String code) async {
-    //return await get('join-lobby/$code');
+  static Future<Map<String, dynamic>?> getJoinLobbySettings() async {
+    final res = await get("join-lobby");
+
+    if (res == null) return null;
+
     return {
-      "lobbyID": code,
-      "subject": "Tiere",
-      "players": [
-        {"username": "Alice", "ready": true},
-        {"username": "Bob", "ready": false},
-      ],
-      "maxPlayers": 6,
+      "subject": res["chosenSubjectName"],
+      "maxPlayers": res["chosenMaxPlayer"],
+      "gameLength": res["chosenGameLength"],
     };
   }
 
-  static Future<Map<String, dynamic>?> postJoinLobby(String code, String username, bool ready) async {
-    //return await post('join-lobby/$code', {'username': username, 'ready': ready});
-    return {"joined": true, "username": username, "ready": ready};
+  static Future<bool> postJoinLobby(String username, bool ready) async {
+    final res = await post("join-lobby", {
+      "nickname": username,
+      "readyPlayer": ready.toString(),
+    });
+
+    return res != null;
   }
 
   // --------------------------

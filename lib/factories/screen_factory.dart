@@ -7,7 +7,6 @@ import '../screens/manual.dart';
 import '../screens/host_lobby.dart';
 import '../screens/join_lobby.dart';
 
-/// Enum for all screens
 enum ScreenType {
   home,
   game,
@@ -19,14 +18,20 @@ enum ScreenType {
   scanQr,
 }
 
-/// Modular Screen Factory
 class ScreenFactory {
   static final Map<ScreenType, Widget Function(Map<String, dynamic>? args)> _screens = {
     ScreenType.home: (_) => const DWKHomePage(),
     ScreenType.manual: (_) => const ManualScreen(),
+
+    /// ⛔ MUST BE REBUILT EVERY TIME
     ScreenType.hostLobby: (args) => HostLobbyPage(data: args ?? {}),
+
+    /// ⛔ MUST BE REBUILT EVERY TIME
+    ScreenType.joinLobby: (args) => JoinLobbyPage(lobbyID: args?['lobbyID']),
+
+    /// ⛔ Game must also rebuild (new state)
     ScreenType.game: (args) => GameScreen(code: args?['code'] ?? ''),
-    ScreenType.joinLobby: (args) => JoinLobbyPage(lobbyData: args ?? {}),
+
     ScreenType.results: (_) => const _PlaceholderScreen(title: 'Results'),
     ScreenType.settings: (_) => const _PlaceholderScreen(title: 'Settings'),
     ScreenType.scanQr: (_) => const _PlaceholderScreen(title: 'QR Scanner'),
