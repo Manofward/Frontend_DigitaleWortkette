@@ -10,6 +10,7 @@ import '../Widgets/footer_nav_bar.dart';
 
 class HostLobbyPage extends StatefulWidget {
   final Map<String, dynamic> data;
+
   const HostLobbyPage({super.key, required this.data});
 
   @override
@@ -17,40 +18,34 @@ class HostLobbyPage extends StatefulWidget {
 }
 
 class _HostLobbyPageState extends State<HostLobbyPage> {
-  late int createdLobbyID;
-  late List<dynamic> subjects;
-  late int maxPlayers;
-  late int maxGameLength;
-  late String generatedQRCode;
+  late int lobbyID;
 
-  late String selectedSubject;
-  late int selectedMaxPlayers;
-  late int selectedMaxGameLength;
+  List<String> subjects = [];
+  List<int> gameLengths = [];
+  List<int> maxPlayersOptions = [];
 
-  List<Map<String, dynamic>> playerList = [];
-  List<String> availableSubjects = [];
-  List<int> availableMaxPlayers = [];
-  List<int> availableGameLengths = [];
+  String selectedSubject = "";
+  int selectedMaxPlayers = 5;
+  int selectedGameLength = 10;
 
-  bool _loadingOptions = true;
+  List<Map<String, dynamic>> players = [];
   Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    createdLobbyID = widget.data['lobbyID'] ?? 0;
-    subjects = widget.data['subjects'] ?? [];
-    maxPlayers = widget.data['maxPlayers'] ?? 0;
-    maxGameLength = widget.data['maxGameLength'] ?? 0;
-    generatedQRCode = widget.data['generatedQRCode'] ?? '';
 
-    selectedSubject = subjects.isNotEmpty ? subjects.first['name'] : 'Thema wählen';
-    selectedMaxPlayers = maxPlayers;
-    selectedMaxGameLength = maxGameLength;
+    lobbyID = widget.data["lobbyID"] ?? 0;
 
-    _loadAvailableOptions();
+    // Initialize with safe defaults
+    selectedSubject = widget.data["subjects"]?.first?["name"] ?? "";
+    selectedMaxPlayers = widget.data["maxPlayers"] ?? 5;
+    selectedGameLength = widget.data["maxGameLength"] ?? 10;
+
+    _loadOptions();
     _loadPlayers();
 
+    // Poll players every 5 seconds
     _timer = Timer.periodic(const Duration(seconds: 5), (_) => _loadPlayers());
   }
 
@@ -60,113 +55,136 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
     super.dispose();
   }
 
-  Future<void> _loadAvailableOptions() async {
-    setState(() => _loadingOptions = true);
-    final response = await ApiService.getHostLobbyOptions(createdLobbyID);
-    if (response != null) {
-      setState(() {
-        availableSubjects = List<String>.from(response['availableSubjects'] ?? []);
-        availableMaxPlayers = List<int>.from(response['availableMaxPlayers'] ?? []);
-        availableGameLengths = List<int>.from(response['availableGameLengths'] ?? []);
-        selectedSubject = availableSubjects.contains(selectedSubject) ? selectedSubject : availableSubjects.first;
-        selectedMaxPlayers = availableMaxPlayers.contains(selectedMaxPlayers) ? selectedMaxPlayers : availableMaxPlayers.first;
-        selectedMaxGameLength = availableGameLengths.contains(selectedMaxGameLength) ? selectedMaxGameLength : availableGameLengths.first;
-        _loadingOptions = false;
-      });
-    } else {
-      setState(() => _loadingOptions = false);
-    }
+  // Load dropdown options
+  Future<void> _loadOptions() async {
+    final options = await ApiService.getHostLobbyOptions();
+    if (options == null) return;
+
+    setState(() {
+      subjects = List<String>.from(options["availableSubjects"] ?? []);
+      gameLengths = List<int>.from(options["availableGameLengths"] ?? []);
+      maxPlayersOptions = List<int>.from(options["availableMaxPlayers"] ?? []);
+
+      // Ensure current selections are valid
+      if (!subjects.contains(selectedSubject) && subjects.isNotEmpty) {
+        selectedSubject = subjects.first;
+      }
+      if (!maxPlayersOptions.contains(selectedMaxPlayers) && maxPlayersOptions.isNotEmpty) {
+        selectedMaxPlayers = maxPlayersOptions.first;
+      }
+      if (!gameLengths.contains(selectedGameLength) && gameLengths.isNotEmpty) {
+        selectedGameLength = gameLengths.first;
+      }
+    });
   }
 
+  // Load players in the lobby
   Future<void> _loadPlayers() async {
-    final response = await ApiService.getHostLobbyPlayers(createdLobbyID);
-    if (response != null && response['players'] != null) {
-      setState(() => playerList = List<Map<String, dynamic>>.from(response['players']));
-    }
+    final res = await ApiService.getHostLobbyPlayers();
+    if (res == null) return;
+
+    setState(() {
+      players = res;
+    });
   }
 
+  // Update a lobby setting
   Future<void> _updateSetting(String key, dynamic value) async {
-    await ApiService.updateHostLobbySetting(createdLobbyID, {key: value});
-  }
+  // Convert value to string to match backend expectation
+  final payload = {key: value.toString()};
+  await ApiService.updateHostLobbySetting(payload);
+}
 
-  void _showQrCode() {
+
+  // Show QR code
+  void _showQr() {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('QR-Code anzeigen'),
-        content: PrettyQr(data: generatedQRCode, size: 200, roundEdges: true),
-        actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Schließen'))],
+      builder: (_) => AlertDialog(
+        title: const Text("QR-Code"),
+        content: PrettyQr(data: lobbyID.toString(), size: 200),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_loadingOptions) return const Scaffold(body: Center(child: CircularProgressIndicator()));
-
     return Scaffold(
-      appBar: AppBar(title: Text('Lobby #$createdLobbyID')),
+      appBar: AppBar(title: Text("Lobby #$lobbyID")),
       body: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(18),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            DropdownRow(label: 'Thema wählen:', value: selectedSubject, items: availableSubjects, onChanged: (val) {
-              if (val == null) return;
-              setState(() => selectedSubject = val);
-              _updateSetting('chosenSubjectName', val);
-            }),
-            const SizedBox(height: 12),
+            // Dropdown Thema/subject
             DropdownRow(
-              label: 'Spiellänge:',
-              value: '$selectedMaxGameLength Min',
-              items: availableGameLengths.map((e) => '$e Min').toList(),
-              onChanged: (val) {
-                if (val == null) return;
-                final parsed = int.parse(val.split(' ').first);
-                setState(() => selectedMaxGameLength = parsed);
-                _updateSetting('chosenGameLength', parsed);
+              label: "Thema",
+              value: selectedSubject,
+              items: subjects,
+              onChanged: (v) {
+                if (v == null) return;
+                setState(() => selectedSubject = v);
+                _updateSetting("subject", v);
               },
             ),
-            const SizedBox(height: 12),
+
+            // Dropdown Spiellänge/maxGameLength
             DropdownRow(
-              label: 'Max. Spieler:',
+              label: "Spiellänge",
+              value: "$selectedGameLength Min",
+              items: gameLengths.map((e) => "$e Min").toList(),
+              onChanged: (v) {
+                if (v == null) return;
+                final parsed = int.tryParse(v.split(" ").first) ?? selectedGameLength;
+                setState(() => selectedGameLength = parsed);
+                _updateSetting("maxGameLength", parsed);
+              },
+            ),
+
+            // Dropdown MaxSpieler/maxPlayers
+            DropdownRow(
+              label: "Max Spieler",
               value: selectedMaxPlayers.toString(),
-              items: availableMaxPlayers.map((e) => e.toString()).toList(),
-              onChanged: (val) {
-                if (val == null) return;
-                final parsed = int.parse(val);
+              items: maxPlayersOptions.map((e) => e.toString()).toList(),
+              onChanged: (v) {
+                if (v == null) return;
+                final parsed = int.tryParse(v) ?? selectedMaxPlayers;
                 setState(() => selectedMaxPlayers = parsed);
-                _updateSetting('chosenMaxPlayer', parsed);
+                _updateSetting("maxPlayers", parsed);
               },
             ),
-            const Divider(height: 40),
-            Text('Lobby-Code: $createdLobbyID', style: const TextStyle(fontSize: 18)),
-            const SizedBox(height: 8),
-            Center(
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.qr_code),
-                label: const Text('QR-Code anzeigen'),
-                onPressed: _showQrCode,
+            const SizedBox(height: 15),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.qr_code),
+              label: const Text("QR Code anzeigen"),
+              onPressed: _showQr,
+            ),
+            const Divider(height: 30),
+            const Text("Spieler:", style: TextStyle(fontSize: 18)),
+            const SizedBox(height: 10),
+            Expanded(
+              child: PlayerListView(
+                players: players.map((e) => e["username"] as String).toList(),
               ),
             ),
-            const Divider(height: 40),
-            Center(
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.play_arrow),
-                label: const Text('Spiel starten'),
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
-                onPressed: () => NavigationService.navigate(context, ScreenType.game, arguments: {'code': createdLobbyID.toString()}),
-              ),
-            ),
-            const Divider(height: 40),
-            const Text('Spieler in Lobby:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Expanded(child: PlayerListView(players: playerList.map((p) => p['username'] as String).toList())),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.play_arrow),
+              label: const Text("Spiel starten"),
+              onPressed: () {
+                NavigationService.navigate(
+                  context,
+                  ScreenType.game,
+                  arguments: {"code": lobbyID.toString()},
+                );
+              },
+            )
           ],
         ),
       ),
-      bottomNavigationBar: FooterNavigationBar(screenType: ScreenType.home, onButtonPressed: (type) => handleFooterButton(context, type)),
+      bottomNavigationBar: FooterNavigationBar(
+        screenType: ScreenType.home,
+        onButtonPressed: (type) => handleFooterButton(context, type),
+      ),
     );
   }
 }

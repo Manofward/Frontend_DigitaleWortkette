@@ -1,9 +1,8 @@
 /* TODOs:
-1. need to add the buttons of the openGamesList so you can join games that are open but have not started
-2. The Title: "Digitale Wortkette" and "offene Spiele" have to be edited so that maybe the big title is similar to the other
-3. linkings to the settings page and qr-Code scanner have to be made and the pages itself too
-4. the linking to the create lobby page and the page itself have to be created
-5. the linking for the join lobby have to be made also
+1. The Title: "Digitale Wortkette" and "offene Spiele" have to be edited so that maybe the big title is similar to the other
+2. linkings to the settings page and qr-Code scanner have to be made and the pages itself too
+3. when you go from host-lobby page back to homepage through the back or home button the lobby needs to be deleted
+4. when you go from the host-lobby page to home you need to get the automatic gamelist updates
 */
 import 'package:flutter/material.dart';
 import '../factories/screen_factory.dart';
@@ -38,8 +37,10 @@ class DWKHomePage extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // gives out the list of the open games
-            const OpenGamesList(),
+            // Wrap ListView in Expanded
+            Expanded(
+              child: const OpenGamesList(),
+            ),
           ],
         ),
       ),

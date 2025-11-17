@@ -1,135 +1,117 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
-import '../services/api_service.dart';
-import '../Widgets/footer_nav_bar.dart';
-import '../factories/screen_factory.dart';
-import '../services/navigation.dart';
+import 'package:flutter/material.dart';
+import '../../services/api_service.dart';
+import '../../services/navigation.dart';
+import '../../factories/screen_factory.dart';
 
 class JoinLobbyPage extends StatefulWidget {
-  final Map<String, dynamic> lobbyData;
-
-  const JoinLobbyPage({super.key, required this.lobbyData});
+  final int lobbyID;
+  const JoinLobbyPage({super.key, required this.lobbyID});
 
   @override
   State<JoinLobbyPage> createState() => _JoinLobbyPageState();
 }
 
 class _JoinLobbyPageState extends State<JoinLobbyPage> {
-  late String username;
+  String username = "";
   bool ready = false;
-  Timer? _usernameDebounce;
-  Timer? _lobbyTimer;
 
-  late TextEditingController _usernameController;
+  Map<String, dynamic>? lobbySettings;
+  List<dynamic> players = [];
+
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    username = widget.lobbyData['username'] ?? '';
-    _usernameController = TextEditingController(text: username);
-    _usernameController.addListener(() {
-      onUsernameChanged(_usernameController.text);
-    });
-    _startLobbyPolling();
+    _loadSettings();
+    _loadPlayers();
+
+    _timer = Timer.periodic(const Duration(seconds: 5), (_) => _loadPlayers());
   }
 
   @override
   void dispose() {
-    _usernameController.dispose();
-    _lobbyTimer?.cancel();
-    _usernameDebounce?.cancel();
+    _timer?.cancel();
     super.dispose();
   }
 
-  void onUsernameChanged(String value) {
-    username = value;
+  Future<void> _loadSettings() async {
+    final res = await ApiService.getJoinLobbySettings();
+    setState(() => lobbySettings = res);
+  }
 
-    // Debounce to avoid too many API calls
-    if (_usernameDebounce?.isActive ?? false) _usernameDebounce!.cancel();
-    _usernameDebounce = Timer(const Duration(milliseconds: 500), () {
-      ApiService.postJoinLobby(
-        widget.lobbyData['lobbyID'],
-        username,
-        ready,
+  Future<void> _loadPlayers() async {
+    final res = await ApiService.getHostLobbyPlayers();
+    setState(() => players = res);
+
+    // Auto-start if all ready
+    if (players.isNotEmpty && players.every((p) => p["isPlayerReady"] == true)) {
+      NavigationService.navigate(
+        context,
+        ScreenType.game,
+        arguments: {"code": widget.lobbyID.toString()},
       );
-    });
+    }
   }
 
-  Future<void> toggleReady() async {
-    setState(() => ready = !ready);
+  Future<void> _sendReady() async {
+    if (username.isEmpty) return;
 
-    await ApiService.postJoinLobby(
-      widget.lobbyData['lobbyID'],
-      username.isEmpty ? 'Player' : username,
-      ready,
-    );
-  }
-
-  void _startLobbyPolling() {
-    _lobbyTimer = Timer.periodic(const Duration(seconds: 2), (_) async {
-      final updatedLobby = await ApiService.getJoinLobby(widget.lobbyData['lobbyID']);
-
-      if (updatedLobby != null) {
-        setState(() {
-          widget.lobbyData['players'] = updatedLobby['players'];
-          widget.lobbyData['maxPlayers'] = updatedLobby['maxPlayers'];
-          widget.lobbyData['subject'] = updatedLobby['subject'];
-        });
-      }
-    });
+    await ApiService.postJoinLobby(username, ready);
+    _loadPlayers();
   }
 
   @override
   Widget build(BuildContext context) {
-    final lobby = widget.lobbyData;
-    final players = (lobby['players'] as List<dynamic>? ?? []);
+    if (lobbySettings == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Lobby')),
+      appBar: AppBar(title: Text("Lobby #${widget.lobbyID}")),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Nickname input
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    decoration: const InputDecoration(labelText: 'Dein Nutzername'),
-                    controller: _usernameController,
-                    onChanged: onUsernameChanged,
-                  ),
-                ),
-                const SizedBox(width: 8),
-              ],
-            ),
-            const SizedBox(height: 16),
+            Text("Thema: ${lobbySettings!['subject']}"),
+            Text("Spielzeit: ${lobbySettings!['gameLength']} Minuten"),
+            Text("Max Spieler: ${lobbySettings!['maxPlayers']}"),
+            const SizedBox(height: 20),
 
-            // Ready button
-            Center(
-              child: ElevatedButton(
-                onPressed: toggleReady,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: ready ? Colors.green : null,
-                ),
-                child: Text(ready ? 'Bereit ✅' : 'Bereit'),
+            TextField(
+              decoration: const InputDecoration(labelText: "Dein Name"),
+              onChanged: (v) => username = v,
+            ),
+
+            SwitchListTile(
+              title: const Text("Bereit"),
+              value: ready,
+              onChanged: (v) {
+                setState(() => ready = v);
+                _sendReady();
+              },
+            ),
+
+            const SizedBox(height: 20),
+            const Text("Spieler:", style: TextStyle(fontSize: 18)),
+
+            Expanded(
+              child: ListView(
+                children: players
+                    .map((p) => ListTile(
+                          title: Text(p["username"]),
+                          trailing: Icon(
+                            p["isPlayerReady"] ? Icons.check : Icons.close,
+                            color: p["isPlayerReady"] ? Colors.green : Colors.red,
+                          ),
+                        ))
+                    .toList(),
               ),
             ),
-            const SizedBox(height: 32),
-
-            // Lobby info
-            Text('Thema: ${lobby['subject']}', style: const TextStyle(fontSize: 18)),
-            const SizedBox(height: 8),
-            Text('Spieler: ${players.length} / ${lobby['maxPlayers']}'),
-            const SizedBox(height: 16),
-            const Text('Warten auf Start … ⏳'),
           ],
         ),
-      ),
-      bottomNavigationBar: FooterNavigationBar(
-        screenType: ScreenType.home,
-        onButtonPressed: (type) => handleFooterButton(context, type),
       ),
     );
   }

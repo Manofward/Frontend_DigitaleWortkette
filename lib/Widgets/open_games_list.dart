@@ -1,7 +1,7 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_frontend/services/navigation.dart';
-import '../services/api_service.dart';
+import '../../services/api_service.dart';
+import '../../services/navigation.dart';
+import '../factories/screen_factory.dart';
 
 class OpenGamesList extends StatefulWidget {
   const OpenGamesList({super.key});
@@ -12,63 +12,51 @@ class OpenGamesList extends StatefulWidget {
 
 class _OpenGamesListState extends State<OpenGamesList> {
   List<dynamic> openGames = [];
-  bool isLoading = true;
-  Timer? _timer;
+  bool loading = true;
 
   @override
   void initState() {
     super.initState();
-    _fetchGames();
-    // Auto-refresh every 5 seconds
-    _timer = Timer.periodic(const Duration(seconds: 5), (_) => _fetchGames());
+    _load();
   }
 
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  Future<void> _fetchGames() async {
-    final data = await ApiService.homepageGet();
-    if (mounted) {
-      setState(() {
-        openGames = data ?? [];
-        isLoading = false;
-      });
-    }
+  Future<void> _load() async {
+    final result = await ApiService.homepageGet();
+    setState(() {
+      openGames = result;
+      loading = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
+    if (loading) return const Center(child: CircularProgressIndicator());
 
     if (openGames.isEmpty) {
-      return const Text('Keine offenen Spiele gefunden');
+      return const Center(child: Text("Keine offenen Spiele verfügbar"));
     }
 
-    return Expanded(
-      child: ListView.builder(
-        itemCount: openGames.length,
-        itemBuilder: (context, index) {
-          final game = openGames[index];
-          return Card(
-            child: ListTile(
-              // uses the parsed json values
-              title: Text('Lobby: ${game['lobbyID']}'),
-              subtitle: Text('Thema: ${game['topic']} • Spieler: ${game['players']}'),
-              // new join Game Button for joining a game from the game List
-              trailing: IconButton(
-                icon: const Icon(Icons.play_arrow_sharp),
-                tooltip: 'Dem Spiel Beitretten',
-                onPressed: () => joinLobby(context ,game['lobbyID']),
-              ),
+    return ListView.builder(
+      itemCount: openGames.length,
+      itemBuilder: (context, index) {
+        final game = openGames[index];
+        return Card(
+          child: ListTile(
+            title: Text("Lobby: ${game['lobbyID']}"),
+            subtitle: Text("Thema: ${game['topic']} • Max Spieler: ${game['players']}"),
+            trailing: IconButton(
+              icon: const Icon(Icons.play_arrow),
+              onPressed: () {
+                NavigationService.navigate(
+                  context,
+                  ScreenType.joinLobby,
+                  arguments: {"lobbyID": game["lobbyID"]},
+                );
+              },
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }

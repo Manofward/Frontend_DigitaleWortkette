@@ -16,22 +16,34 @@ class DropdownRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Expanded(flex: 2, child: Text(label, style: const TextStyle(fontSize: 16))),
-        Expanded(
-          flex: 3,
-          child: DropdownButton<String>(
-            isExpanded: true,
-            value: value,
-            items: items
-                .map((item) => DropdownMenuItem(value: item, child: Text(item)))
-                .toList(),
-            onChanged: onChanged,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            flex: 2,
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 16),
+            ),
           ),
-        ),
-      ],
+          Expanded(
+            flex: 3,
+            child: DropdownButton<String>(
+              isExpanded: true,
+              value: items.contains(value) ? value : (items.isNotEmpty ? items.first : null),
+              items: items
+                  .map((item) => DropdownMenuItem(
+                        value: item,
+                        child: Text(item),
+                      ))
+                  .toList(),
+              onChanged: onChanged,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
