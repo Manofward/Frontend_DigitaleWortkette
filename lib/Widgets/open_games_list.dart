@@ -11,19 +11,25 @@ class OpenGamesList extends StatefulWidget {
 }
 
 class _OpenGamesListState extends State<OpenGamesList> {
-  List<dynamic> openGames = [];
+  List<Map<String, dynamic>> openGames = [];
   bool loading = true;
 
   @override
   void initState() {
     super.initState();
-    _load();
+    _loadGames();
   }
 
-  Future<void> _load() async {
+  Future<void> _loadGames() async {
     final result = await ApiService.homepageGet();
+    final games = result
+        .map<Map<String, dynamic>>(
+          (e) => Map<String, dynamic>.from(e as Map),
+        )
+        .toList();
+
     setState(() {
-      openGames = result;
+      openGames = games;
       loading = false;
     });
   }
@@ -40,17 +46,20 @@ class _OpenGamesListState extends State<OpenGamesList> {
       itemCount: openGames.length,
       itemBuilder: (context, index) {
         final game = openGames[index];
+
         return Card(
           child: ListTile(
             title: Text("Lobby: ${game['lobbyID']}"),
-            subtitle: Text("Thema: ${game['topic']} • Max Spieler: ${game['players']}"),
+            subtitle: Text(
+                "Thema: ${game['topic']} • Max Spieler: ${game['players']}"),
             trailing: IconButton(
               icon: const Icon(Icons.play_arrow),
               onPressed: () {
+                // Navigate with dynamic backend data
                 NavigationService.navigate(
                   context,
                   ScreenType.joinLobby,
-                  arguments: {"lobbyID": game["lobbyID"]},
+                  arguments: game,
                 );
               },
             ),
