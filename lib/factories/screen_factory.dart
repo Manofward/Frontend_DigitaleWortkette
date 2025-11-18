@@ -27,10 +27,12 @@ class ScreenFactory {
     ScreenType.hostLobby: (args) => HostLobbyPage(data: args ?? {}),
 
     /// ⛔ MUST BE REBUILT EVERY TIME
-    ScreenType.joinLobby: (args) => JoinLobbyPage(lobbyID: args?['lobbyID']),
+    ScreenType.joinLobby: (args) => JoinLobbyPage(lobbyData: args ?? {}),
 
     /// ⛔ Game must also rebuild (new state)
-    ScreenType.game: (args) => GameScreen(code: args?['code'] ?? ''),
+    ScreenType.game: (args) => GameScreen(
+          code: args != null && args.containsKey('code') ? args['code'].toString() : '',
+        ),
 
     ScreenType.results: (_) => const _PlaceholderScreen(title: 'Results'),
     ScreenType.settings: (_) => const _PlaceholderScreen(title: 'Settings'),
@@ -51,6 +53,8 @@ class _PlaceholderScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(title: Text(title)),
-        body: Center(child: Text('$title\n(Not implemented yet)', textAlign: TextAlign.center)),
+        body: Center(
+          child: Text('$title\n(Not implemented yet)', textAlign: TextAlign.center),
+        ),
       );
 }

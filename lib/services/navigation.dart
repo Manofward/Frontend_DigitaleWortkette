@@ -15,35 +15,15 @@ class NavigationService {
     // Home: always single instance, clears the stack
     if (screen == ScreenType.home) {
       final route = MaterialPageRoute(
-        builder: (_) => ScreenFactory.createScreen(screen, arguments: arguments),
+        builder: (_) =>
+            ScreenFactory.createScreen(screen, arguments: arguments),
         settings: RouteSettings(name: screen.name, arguments: arguments),
       );
       Navigator.pushAndRemoveUntil(context, route, (r) => false);
       return;
     }
 
-    // HostLobby: single instance, keep previous stack
-    if (screen == ScreenType.hostLobby) {
-      Widget page;
-      if (_pageInstances.containsKey(screen)) {
-        page = _pageInstances[screen]!;
-      } else {
-        page = ScreenFactory.createScreen(screen, arguments: arguments);
-        _pageInstances[screen] = page;
-      }
-
-      final route = MaterialPageRoute(
-        builder: (_) => page,
-        settings: RouteSettings(name: screen.name, arguments: arguments),
-      );
-
-      // Remove any existing HostLobby in the stack
-      Navigator.pushAndRemoveUntil(
-          context, route, (r) => r.settings.name != ScreenType.hostLobby.name);
-      return;
-    }
-
-    // Other pages: reuse existing instance if available
+    // Other pages: reuse instance
     Widget page;
     if (_pageInstances.containsKey(screen)) {
       page = _pageInstances[screen]!;
@@ -66,7 +46,8 @@ class NavigationService {
 }
 
 /// Handles footer button taps
-Future<void> handleFooterButton(BuildContext context, FooterButtonType type) async {
+Future<void> handleFooterButton(
+    BuildContext context, FooterButtonType type) async {
   switch (type) {
     case FooterButtonType.settings:
       NavigationService.navigate(context, ScreenType.settings);
@@ -84,15 +65,10 @@ Future<void> handleFooterButton(BuildContext context, FooterButtonType type) asy
 }
 
 /// Example: create a new lobby and navigate to HostLobby page
-/// Example: create a new lobby and navigate to HostLobby page
 Future<void> createGame(BuildContext context) async {
-  final response = await ApiService.createLobby(
-    subject: 'Default',
-    maxGameLength: 10,
-    maxPlayers: 6,
-  );
+  final Map<String, dynamic> response = await ApiService.createLobby();
 
-  if (response != null) {
+  if (response.isNotEmpty) {
     NavigationService.navigate(
       context,
       ScreenType.hostLobby,
@@ -104,13 +80,13 @@ Future<void> createGame(BuildContext context) async {
   }
 }
 
-
 /// Join an existing lobby by code
 Future<void> joinLobby(BuildContext context, String lobbyCode) async {
   try {
-    final lobbyData = await ApiService.getLobby(lobbyCode);
+    final Map<String, dynamic> lobbyData =
+        await ApiService.getLobby(lobbyCode);
 
-    if (lobbyData != null) {
+    if (lobbyData.isNotEmpty) {
       // Navigate to the join lobby screen with the data
       NavigationService.navigate(
         context,
@@ -128,4 +104,3 @@ Future<void> joinLobby(BuildContext context, String lobbyCode) async {
     );
   }
 }
-

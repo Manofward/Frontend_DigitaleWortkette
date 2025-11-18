@@ -3,18 +3,24 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class ApiService {
-  static const String baseUrl = 'http://10.0.2.2:5000/api/v1/dwk';
+  static const String baseUrl = 'http://172.16.34.142:5000/api/v1/dwk';
 
+  // --------------------------
   // Basic GET
+  // --------------------------
   static Future<dynamic> get(String endpoint) async {
     try {
       final res = await http.get(Uri.parse('$baseUrl/$endpoint'));
+      debugPrint("$res");
+      debugPrint("Endpoint param: $endpoint (${endpoint.runtimeType})");
 
-      if (res.statusCode == 200) {
+      if (res.statusCode == 200 || res.statusCode == 201) {
+        debugPrint("GET OK");
         return jsonDecode(res.body);
       }
 
       if (res.statusCode == 204) {
+        debugPrint("GET 204");
         return [];
       }
 
@@ -25,12 +31,14 @@ class ApiService {
     }
   }
 
+  // --------------------------
   // Basic POST (form-data)
+  // --------------------------
   static Future<dynamic> post(String endpoint, Map<String, dynamic> data) async {
     try {
       final res = await http.post(
         Uri.parse('$baseUrl/$endpoint'),
-        body: data, // backend expects form-data, not json
+        body: data,
       );
 
       if (res.statusCode == 200 || res.statusCode == 201) {
@@ -54,7 +62,9 @@ class ApiService {
       return [];
     }
 
-    return (res as List).map((e) => {
+    if (res is! List) return [];
+
+    return res.map((e) => {
           "lobbyID": e["lobbyID"],
           "topic": e["subjectName"],
           "players": e["maxPlayers"],
@@ -62,52 +72,38 @@ class ApiService {
   }
 
   // --------------------------
-  // 2. Host Lobby
+  // 2. Host Lobby (CREATE LOBBY)
   // --------------------------
+  static Future<Map<String, dynamic>> createLobby() async {
+  final res = await get("host-lobby");
 
-  static Future<Map<String, dynamic>?> createLobby({
-    required String subject,
-    required int maxGameLength,
-    required int maxPlayers,
-  }) async {
-    final res = await post("host-lobby", {
-      "subject": subject,
-      "maxGameLength": maxGameLength.toString(),
-      "maxPlayers": maxPlayers.toString(),
-    });
-
-    if (res == null) return null;
-
-    return {
-      "lobbyID": res["lobbyID"],
-      "subjects": [
-        {"name": res["subjectName"]}
-      ],
-      "generatedQRCode": res["generatedQRCode"],
-      "maxPlayers": res["maxPlayers"],
-      "maxGameLength": res["maxGameLength"],
-    };
+  if (res == null || res is! Map<String, dynamic>) {
+    return {};
   }
 
+  return {
+    "lobbyID": res["lobbyID"],
+    "generatedQRCode": res["generatedQRCode"],
+    "maxPlayers": res["maxPlayers"],           // list<int>
+    "maxGameLength": res["maxGameLength"],     // list<int>
+    "subjectName": res["subjectName"],         // list<String>
+  };
+}
+
+  // --------------------------
+  // Host Lobby Players
+  // --------------------------
   static Future<List<Map<String, dynamic>>> getHostLobbyPlayers() async {
     final res = await get("host-lobby");
 
-    if (res == null || res is List && res.isEmpty) return [];
+    if (res == null || res is! List) return [];
 
     return List<Map<String, dynamic>>.from(
-      (res as List).map((p) => {
-            "username": p["username"],
-            "isPlayerReady": p["isPlayerReady"],
-          }),
+      res.map((p) => {
+        "username": p["username"],
+        "isPlayerReady": p["isPlayerReady"],
+      }),
     );
-  }
-
-  static Future<Map<String, dynamic>> getHostLobbyOptions() async {
-    return {
-      "availableSubjects": ["Tiere", "Städte", "Flüsse"],
-      "availableMaxPlayers": [5, 10, 15, 20, 25],
-      "availableGameLengths": [5, 10, 15, 20],
-    };
   }
 
   static Future<void> updateHostLobbySetting(Map<String, dynamic> data) async {
@@ -117,16 +113,16 @@ class ApiService {
   // --------------------------
   // 3. Join Lobby
   // --------------------------
-  static Future<Map<String, dynamic>?> getJoinLobbySettings() async {
+  static Future<List<dynamic>> getJoinLobbySettings() async {
     final res = await get("join-lobby");
 
-    if (res == null) return null;
+    if (res == null || res is! List) return [];
 
-    return {
-      "subject": res["chosenSubjectName"],
-      "maxPlayers": res["chosenMaxPlayer"],
-      "gameLength": res["chosenGameLength"],
-    };
+    return res.map((e) => [
+          e["chosenSubjectName"],
+          e["chosenMaxPlayer"],
+          e["chosenGameLength"],
+        ]).toList();
   }
 
   static Future<bool> postJoinLobby(String username, bool ready) async {
@@ -141,8 +137,7 @@ class ApiService {
   // --------------------------
   // 4. Waiting Room
   // --------------------------
-  static Future<Map<String, dynamic>?> getLobby(String code) async {
-    //return await get('lobby/$code');
+  static Future<dynamic> getLobby(String code) async {
     return {
       "lobbyID": code,
       "subject": "Städte",
@@ -155,16 +150,14 @@ class ApiService {
   // --------------------------
   // 5. Start Game
   // --------------------------
-  static Future<Map<String, dynamic>?> startGame(String code, String firstLetter) async {
-    //return await post('start-game/$code', {'startGame': true, 'firstLetter': firstLetter});
+  static Future<dynamic> startGame(String code, String firstLetter) async {
     return {"started": true, "firstLetter": firstLetter, "code": code};
   }
 
   // --------------------------
   // 6. Game
   // --------------------------
-  static Future<Map<String, dynamic>?> getGame(String code) async {
-    //return await get('game/$code');
+  static Future<dynamic> getGame(String code) async {
     return {
       "round": 3,
       "currentLetter": "B",
@@ -173,8 +166,7 @@ class ApiService {
     };
   }
 
-  static Future<Map<String, dynamic>?> postWord(String code, String wordInput) async {
-    //return await post('game/$code', {'wordInput': wordInput});
+  static Future<dynamic> postWord(String code, String wordInput) async {
     return {
       "accepted": true,
       "newLetter": wordInput.characters.last.toUpperCase(),
@@ -182,16 +174,14 @@ class ApiService {
     };
   }
 
-  static Future<Map<String, dynamic>?> postPlayerStatus(String code, String status) async {
-    //return await post('game/$code', {'playerStatus': status});
+  static Future<dynamic> postPlayerStatus(String code, String status) async {
     return {"statusUpdated": true, "playerStatus": status};
   }
 
   // --------------------------
-  // 7. Game State / Word Submit (optional)
+  // 7. Game State
   // --------------------------
-  static Future<Map<String, dynamic>?> getGameState(String code) async {
-    //return await get('api/game-state/$code');
+  static Future<dynamic> getGameState(String code) async {
     return {
       "round": 2,
       "letter": "A",
@@ -200,16 +190,14 @@ class ApiService {
     };
   }
 
-  static Future<Map<String, dynamic>?> submitWord(String code, String word) async {
-    //return await post('api/submit-word/$code', {'wordInput': word});
+  static Future<dynamic> submitWord(String code, String word) async {
     return {"accepted": true, "word": word};
   }
 
   // --------------------------
   // 8. Results
   // --------------------------
-  static Future<Map<String, dynamic>?> getResults(String code) async {
-    //return await get('results/$code');
+  static Future<dynamic> getResults(String code) async {
     return {
       "winner": "Alice",
       "scoreboard": [
@@ -223,8 +211,7 @@ class ApiService {
   // --------------------------
   // 9. Manual
   // --------------------------
-  static Future<Map<String, dynamic>?> getManual() async {
-    //return await get('manual');
+  static Future<dynamic> getManual() async {
     return {
       "sections": [
         {"title": "Einleitung", "content": "Willkommen zur Digitalen Wortkette!"},
