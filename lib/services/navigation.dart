@@ -3,7 +3,7 @@ import '../factories/screen_factory.dart';
 import '../Widgets/footer_nav_bar.dart';
 import 'api_service.dart';
 
-class NavigationService {
+/*class NavigationService {
   /// Keep single instances of non-Home pages
   static final Map<ScreenType, Widget> _pageInstances = {};
 
@@ -43,7 +43,36 @@ class NavigationService {
   static void goBack(BuildContext context) {
     if (Navigator.canPop(context)) Navigator.pop(context);
   }
+}*/
+
+class NavigationService {
+  static void navigate(BuildContext context, ScreenType screen,
+      {Map<String, dynamic>? arguments}) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ScreenFactory.createScreen(screen, arguments: arguments),
+        settings: RouteSettings(name: screen.name, arguments: arguments),
+      ),
+    );
+  }
+
+  static void goHome(BuildContext context) {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ScreenFactory.createScreen(ScreenType.home),
+        settings: const RouteSettings(name: "home"),
+      ),
+      (_) => false,
+    );
+  }
+
+  static void goBack(BuildContext context) {
+    if (Navigator.canPop(context)) Navigator.pop(context);
+  }
 }
+
 
 /// Handles footer button taps
 Future<void> handleFooterButton(
@@ -81,10 +110,10 @@ Future<void> createGame(BuildContext context) async {
 }
 
 /// Join an existing lobby by code
-Future<void> joinLobby(BuildContext context, String lobbyCode) async {
+Future<void> joinLobby(BuildContext context, int lobbyID) async {
   try {
     final Map<String, dynamic> lobbyData =
-        await ApiService.getLobby(lobbyCode);
+        await ApiService.getLobby(lobbyID);
 
     if (lobbyData.isNotEmpty) {
       // Navigate to the join lobby screen with the data
