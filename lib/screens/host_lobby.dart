@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_frontend/services/polling/poll_manager.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 import '../../services/api_service.dart';
 import '../../services/navigation.dart';
@@ -50,18 +51,18 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
   }
 
   void _startPlayerPolling() {
-    _loadPlayers();
-    _timer = Timer.periodic(const Duration(seconds: 5), (_) => _loadPlayers());
+    _timer = PollManager.register(
+      Timer.periodic(const Duration(seconds: 5), (_) => _loadPlayers()),
+    );
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
     super.dispose();
   }
 
   Future<void> _loadPlayers() async {
-    final res = await ApiService.getHostLobbyPlayers();
+    final res = await ApiService.getLobbyPlayers(lobbyID);
     if (mounted && res != null) {
       setState(() => players = res);
     }

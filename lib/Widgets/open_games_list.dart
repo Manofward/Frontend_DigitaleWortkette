@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
+import '../services/polling/poll_manager.dart';
 import '../../services/api_service.dart';
 import '../../services/navigation.dart';
 import '../factories/screen_factory.dart';
@@ -13,11 +15,14 @@ class OpenGamesList extends StatefulWidget {
 class _OpenGamesListState extends State<OpenGamesList> {
   List<Map<String, dynamic>> openGames = [];
   bool loading = true;
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    _loadGames();
+    PollManager.register(
+      Timer.periodic(const Duration(seconds: 5), (_) => _loadGames()),
+    );
   }
 
   Future<void> _loadGames() async {
