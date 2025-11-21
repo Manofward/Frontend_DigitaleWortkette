@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import '../../services/navigation.dart';
 import '../../factories/screen_factory.dart';
+import '../services/polling/poll_manager.dart';
 
 class JoinLobbyPage extends StatefulWidget {
   final Map<String, dynamic> lobbyData;
@@ -13,46 +14,69 @@ class JoinLobbyPage extends StatefulWidget {
 }
 
 class _JoinLobbyPageState extends State<JoinLobbyPage> {
-  String username = "";
-  bool ready = false;
+  // daten die von Flask kommen
+  String chosenSubjectName = "";
+  String chosenMaxPlayers = "";
+  String chosenMaxGameLength = "";
   List<dynamic> players = [];
-  Timer? _timer;
 
-  String get lobbyID => widget.lobbyData['lobbyID']?.toString() ?? '-';
-  String get topic => widget.lobbyData['topic']?.toString() ?? '-';
-  int get maxPlayers => widget.lobbyData['maxPlayers'] ?? 0;
-  int get gameLength => widget.lobbyData['gameLength'] ?? 0;
+  // daten die vom Mitspieler angepasst werden können
+  bool ready = false;
+  String username = "";
+
+  Timer? timerPlayerList;
+  Timer? timerLobbySettings;
+
+  int get lobbyID => widget.lobbyData['lobbyID'];
 
   @override
   void initState() {
+    timerLobbySettings = PollManager.register(
+      Timer.periodic(const Duration(seconds: 5), (_) => _loadLobbySettings()),
+    );
+
+    timerPlayerList = PollManager.register(
+      Timer.periodic(const Duration(seconds: 5), (_) => _loadPlayers()),
+    );
+
     super.initState();
-    _loadPlayers();
-    _timer = Timer.periodic(const Duration(seconds: 5), (_) => _loadPlayers());
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
+    timerPlayerList?.cancel();
+    timerLobbySettings?.cancel();
     super.dispose();
   }
 
+  Future<void> _loadLobbySettings() async {
+    final res = await ApiService.getLobby(lobbyID);
+    setState(() {
+      chosenSubjectName = res["chosenSubjectName"];
+      chosenMaxPlayers = res["chosenMaxPlayers"];
+      chosenMaxGameLength = res["chosenMaxGameLength"];
+    });
+    debugPrint("$chosenMaxGameLength = game Length, $chosenMaxPlayers = maxPlayers, $chosenSubjectName = Thema");
+  }
+
   Future<void> _loadPlayers() async {
-    final res = await ApiService.getHostLobbyPlayers();
+    final res = await ApiService.getLobbyPlayers(lobbyID);
     setState(() => players = res ?? []);
+    debugPrint("$players");
 
     // Auto-start if all ready
     if (players.isNotEmpty && players.every((p) => p['ready'] == true)) {
       NavigationService.navigate(
         context,
         ScreenType.game,
-        arguments: {'code': lobbyID},
+        arguments: {'lobbyID': lobbyID},
       );
     }
   }
 
-  Future<void> _sendReady() async {
+  Future<void> _sendPlayerJoin() async {
     if (username.isEmpty) return;
-    await ApiService.postJoinLobby(username, ready);
+    await ApiService.postJoinLobby(lobbyID, username, ready);
     _loadPlayers();
   }
 
@@ -65,12 +89,19 @@ class _JoinLobbyPageState extends State<JoinLobbyPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Thema: $topic"),
-            Text("Spielzeit: $gameLength Minuten"),
-            Text("Max Spieler: $maxPlayers"),
+            Text("Thema: $chosenSubjectName"),
+            Text("Spielzeit: $chosenMaxGameLength Minuten"),
+            Text("Max Spieler: $chosenMaxPlayers"),
             const SizedBox(height: 20),
             TextField(
-              decoration: const InputDecoration(labelText: "Dein Name"),
+              decoration: InputDecoration(labelText: "Bitte Usernamen eingeben", 
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.send_rounded),
+                  onPressed: () {
+                    _sendPlayerJoin();
+                  },
+                ),
+              ),
               onChanged: (v) => username = v,
             ),
             SwitchListTile(
@@ -78,11 +109,13 @@ class _JoinLobbyPageState extends State<JoinLobbyPage> {
               value: ready,
               onChanged: (v) {
                 setState(() => ready = v);
-                _sendReady();
+                _sendPlayerJoin();
               },
             ),
             const SizedBox(height: 20),
             const Text("Spieler:", style: TextStyle(fontSize: 18)),
+
+            // hier muss noch hinzugefügt werden, dass sich der Icon und die farbe ändert bei true und false
             Expanded(
               child: ListView(
                 children: players
