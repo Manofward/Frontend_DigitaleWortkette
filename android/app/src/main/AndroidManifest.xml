@@ -1,6 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Below need to be added the permissions required by the app. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+
+    <uses-feature android:name="android.hardware.camera" android:required="false"/>
+
     <application
-        android:label="flutter_frontend"
+        android:label="Wortketten Spiel"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
