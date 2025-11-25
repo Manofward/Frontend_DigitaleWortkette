@@ -3,48 +3,6 @@ import '../factories/screen_factory.dart';
 import '../Widgets/footer_nav_bar.dart';
 import 'api_service.dart';
 
-/*class NavigationService {
-  /// Keep single instances of non-Home pages
-  static final Map<ScreenType, Widget> _pageInstances = {};
-
-  static void navigate(BuildContext context, ScreenType screen,
-      {Map<String, dynamic>? arguments}) {
-    final currentRoute = ModalRoute.of(context);
-    if (currentRoute?.settings.name == screen.name) return;
-
-    // Home: always single instance, clears the stack
-    if (screen == ScreenType.home) {
-      final route = MaterialPageRoute(
-        builder: (_) =>
-            ScreenFactory.createScreen(screen, arguments: arguments),
-        settings: RouteSettings(name: screen.name, arguments: arguments),
-      );
-      Navigator.pushAndRemoveUntil(context, route, (r) => false);
-      return;
-    }
-
-    // Other pages: reuse instance
-    Widget page;
-    if (_pageInstances.containsKey(screen)) {
-      page = _pageInstances[screen]!;
-    } else {
-      page = ScreenFactory.createScreen(screen, arguments: arguments);
-      _pageInstances[screen] = page;
-    }
-
-    final route = MaterialPageRoute(
-      builder: (_) => page,
-      settings: RouteSettings(name: screen.name, arguments: arguments),
-    );
-
-    Navigator.push(context, route);
-  }
-
-  static void goBack(BuildContext context) {
-    if (Navigator.canPop(context)) Navigator.pop(context);
-  }
-}*/
-
 class NavigationService {
   static void navigate(BuildContext context, ScreenType screen,
       {Map<String, dynamic>? arguments}) {
