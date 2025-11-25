@@ -5,3 +5,7 @@
 4. when you go from host-lobby page back to homepage through the back or home button the lobby needs to be deleted
 5. feature for leaving lobby needs to be added that when you leave the lobby as a player your username is deleted from the playerlist of the lobby
 6. need to add that when i go from host-lobby/join-lobby or any other page that polls data that it stops when leaving the corresponding page
+
+# Important:
+1. use Multithreading for the GET/POST and the posts
+2. handling permissions for phone so its possible to make a release build which can use the permissions
