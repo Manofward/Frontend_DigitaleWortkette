@@ -32,6 +32,34 @@ class NavigationService {
 }
 
 
+/*class NavigationService {
+  static void navigate(BuildContext context, ScreenType screen,
+      {Map<String, dynamic>? arguments}) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ScreenFactory.createScreen(screen, arguments: arguments),
+        settings: RouteSettings(name: screen.name, arguments: arguments),
+      ),
+    );
+  }
+
+  static void goHome(BuildContext context) {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ScreenFactory.createScreen(ScreenType.home),
+        settings: const RouteSettings(name: "home"),
+      ),
+      (_) => false,
+    );
+  }
+
+  static void goBack(BuildContext context) {
+    if (Navigator.canPop(context)) Navigator.pop(context);
+  }
+}
+*/
 /// Handles footer button taps
 Future<void> handleFooterButton(
     BuildContext context, FooterButtonType type) async {
@@ -43,13 +71,15 @@ Future<void> handleFooterButton(
       NavigationService.navigate(context, ScreenType.manual);
       break;
     case FooterButtonType.home:
-      NavigationService.navigate(context, ScreenType.home);
+      // This ensures only one home page exists
+      NavigationService.goHome(context);
       break;
     case FooterButtonType.qrScanner:
       NavigationService.navigate(context, ScreenType.scanQr);
       break;
   }
 }
+
 
 /// Example: create a new lobby and navigate to HostLobby page
 Future<void> createGame(BuildContext context) async {

@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://172.16.34.158:5000/api/v1/dwk'; // for testing with more real endpoints
+  static const String baseUrl = 'http://172.16.34.16:5000/api/v1/dwk'; // for testing with more real endpoints
   // static const String baseUrl = 'http://172.16.34.110:5000/api/v1/dwk'; // for the docker 
   //static const String baseUrl = 'http://10.0.2.2:5000/api/v1/dwk'; // for local testing
 
