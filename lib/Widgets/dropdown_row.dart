@@ -1,18 +1,33 @@
 import 'package:flutter/material.dart';
 
-class DropdownRow extends StatelessWidget {
+class DropdownRow extends StatefulWidget {
   final String label;
-  final String value;
+  final String initialValue;
   final List<String> items;
   final ValueChanged<String?> onChanged;
 
   const DropdownRow({
     super.key,
     required this.label,
-    required this.value,
+    required this.initialValue,
     required this.items,
     required this.onChanged,
   });
+
+  @override
+  State<DropdownRow> createState() => _DropdownRowState();
+}
+
+class _DropdownRowState extends State<DropdownRow> {
+  late String selectedValue;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedValue = widget.items.contains(widget.initialValue)
+        ? widget.initialValue
+        : (widget.items.isNotEmpty ? widget.items.first : '');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +39,7 @@ class DropdownRow extends StatelessWidget {
           Expanded(
             flex: 2,
             child: Text(
-              label,
+              widget.label,
               style: const TextStyle(fontSize: 16),
             ),
           ),
@@ -32,14 +47,18 @@ class DropdownRow extends StatelessWidget {
             flex: 3,
             child: DropdownButton<String>(
               isExpanded: true,
-              value: items.contains(value) ? value : (items.isNotEmpty ? items.first : null),
-              items: items
+              value: selectedValue,
+              items: widget.items
                   .map((item) => DropdownMenuItem(
                         value: item,
                         child: Text(item),
                       ))
                   .toList(),
-              onChanged: onChanged,
+              onChanged: (v) {
+                if (v == null) return;
+                setState(() => selectedValue = v); // rebuilds only this dropdown
+                widget.onChanged(v); // notify parent
+              },
             ),
           ),
         ],
