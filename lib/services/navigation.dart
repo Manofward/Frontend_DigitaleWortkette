@@ -31,35 +31,6 @@ class NavigationService {
   }
 }
 
-
-/*class NavigationService {
-  static void navigate(BuildContext context, ScreenType screen,
-      {Map<String, dynamic>? arguments}) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ScreenFactory.createScreen(screen, arguments: arguments),
-        settings: RouteSettings(name: screen.name, arguments: arguments),
-      ),
-    );
-  }
-
-  static void goHome(BuildContext context) {
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ScreenFactory.createScreen(ScreenType.home),
-        settings: const RouteSettings(name: "home"),
-      ),
-      (_) => false,
-    );
-  }
-
-  static void goBack(BuildContext context) {
-    if (Navigator.canPop(context)) Navigator.pop(context);
-  }
-}
-*/
 /// Handles footer button taps
 Future<void> handleFooterButton(
     BuildContext context, FooterButtonType type) async {

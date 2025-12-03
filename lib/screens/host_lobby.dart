@@ -5,6 +5,7 @@ import '../../services/api_service.dart';
 import '../../services/navigation.dart';
 import '../Widgets/dropdown_row.dart';
 import '../Widgets/footer_nav_bar.dart';
+import '../Widgets/pop_leave_game.dart';
 import '../factories/screen_factory.dart';
 
 class HostLobbyPage extends StatefulWidget {
@@ -17,6 +18,7 @@ class HostLobbyPage extends StatefulWidget {
 
 class _HostLobbyPageState extends State<HostLobbyPage> {
   late final int lobbyID;
+  String username = 'Host';
   List<dynamic> players = [];
 
   List<String> subjects = [];
@@ -81,100 +83,109 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text("Lobby #$lobbyID")),
-      body: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Thema Dropdown (self-contained)
-            DropdownRow(
-              label: "Thema",
-              initialValue: selectedSubject,
-              items: subjects,
-              onChanged: (v) {
-                if (v == null) return;
-                selectedSubject = v;
-                _updateSetting("subjectName", v);
-              },
-            ),
-
-            // Game Length Dropdown
-            DropdownRow(
-              label: "Spiellänge",
-              initialValue: "$selectedGameLength Min",
-              items: gameLengths.map((e) => "$e Min").toList(),
-              onChanged: (v) {
-                if (v == null) return;
-                final parsed = int.tryParse(v.split(" ").first) ?? selectedGameLength;
-                selectedGameLength = parsed;
-                _updateSetting("maxGameLength", parsed);
-              },
-            ),
-
-            // Max Players Dropdown
-            DropdownRow(
-              label: "Max Spieler",
-              initialValue: selectedMaxPlayers.toString(),
-              items: maxPlayersOptions.map((e) => e.toString()).toList(),
-              onChanged: (v) {
-                if (v == null) return;
-                final parsed = int.tryParse(v) ?? selectedMaxPlayers;
-                selectedMaxPlayers = parsed;
-                _updateSetting("maxPlayers", parsed);
-              },
-            ),
-
-            const SizedBox(height: 15),
-
-            ElevatedButton.icon(
-              icon: const Icon(Icons.qr_code),
-              label: const Text("QR Code anzeigen"),
-              onPressed: _showQrCode,
-            ),
-
-            const Divider(height: 30),
-            const Text("Spieler:", style: TextStyle(fontSize: 18)),
-            const SizedBox(height: 10),
-
-            // Player list updates continuously without dropdown interference
-            Expanded(
-              child: ListView(
-                children: players
-                    .map((p) => ListTile(
-                          title: Text(p['username'] ?? '-'),
-                          trailing: Icon(
-                            p['isPlayerReady'] == "true"
-                                ? Icons.check_circle
-                                : Icons.cancel,
-                            color: p['isPlayerReady'] == "true"
-                                ? Colors.green
-                                : Colors.red,
-                          ),
-                        ))
-                    .toList(),
+    return PopScope( // PopScope for adding poping alerts
+      canPop: false,
+      onPopInvoked: LeaveLobby.onPopInvoked(
+        context: context,
+        lobbyID: lobbyID,
+        username: username,
+      ),
+      // Scaffold is the part for the main part for the showing of the site
+      child: Scaffold(
+        appBar: AppBar(title: Text("Lobby #$lobbyID")),
+        body: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Thema Dropdown (self-contained)
+              DropdownRow(
+                label: "Thema",
+                initialValue: selectedSubject,
+                items: subjects,
+                onChanged: (v) {
+                  if (v == null) return;
+                  selectedSubject = v;
+                  _updateSetting("subjectName", v);
+                },
               ),
-            ),
 
-            ElevatedButton.icon(
-              icon: const Icon(Icons.play_arrow),
-              label: const Text("Spiel starten"),
-              onPressed: () {
-                NavigationService.navigate(
-                  context,
-                  ScreenType.game,
-                  arguments: {'code': lobbyID.toString()},
-                );
-              },
-            ),
-          ],
+              // Game Length Dropdown
+              DropdownRow(
+                label: "Spiellänge",
+                initialValue: "$selectedGameLength Min",
+                items: gameLengths.map((e) => "$e Min").toList(),
+                onChanged: (v) {
+                  if (v == null) return;
+                  final parsed = int.tryParse(v.split(" ").first) ?? selectedGameLength;
+                  selectedGameLength = parsed;
+                  _updateSetting("maxGameLength", parsed);
+                },
+              ),
+
+              // Max Players Dropdown
+              DropdownRow(
+                label: "Max Spieler",
+                initialValue: selectedMaxPlayers.toString(),
+                items: maxPlayersOptions.map((e) => e.toString()).toList(),
+                onChanged: (v) {
+                  if (v == null) return;
+                  final parsed = int.tryParse(v) ?? selectedMaxPlayers;
+                  selectedMaxPlayers = parsed;
+                  _updateSetting("maxPlayers", parsed);
+                },
+              ),
+
+              const SizedBox(height: 15),
+
+              ElevatedButton.icon(
+                icon: const Icon(Icons.qr_code),
+                label: const Text("QR Code anzeigen"),
+                onPressed: _showQrCode,
+              ),
+
+              const Divider(height: 30),
+              const Text("Spieler:", style: TextStyle(fontSize: 18)),
+              const SizedBox(height: 10),
+
+              // Player list updates continuously without dropdown interference
+              Expanded(
+                child: ListView(
+                  children: players
+                      .map((p) => ListTile(
+                            title: Text(p['username'] ?? '-'),
+                            trailing: Icon(
+                              p['isPlayerReady'] == "true"
+                                  ? Icons.check_circle
+                                  : Icons.cancel,
+                              color: p['isPlayerReady'] == "true"
+                                  ? Colors.green
+                                  : Colors.red,
+                            ),
+                          ))
+                      .toList(),
+                ),
+              ),
+
+              ElevatedButton.icon(
+                icon: const Icon(Icons.play_arrow),
+                label: const Text("Spiel starten"),
+                onPressed: () {
+                  NavigationService.navigate(
+                    context,
+                    ScreenType.game,
+                    arguments: {'code': lobbyID.toString()},
+                  );
+                },
+              ),
+            ],
+          ),
         ),
-      ),
-      bottomNavigationBar: FooterNavigationBar(
-        screenType: ScreenType.home,
-        onButtonPressed: (type) => handleFooterButton(context, type),
-      ),
+        bottomNavigationBar: FooterNavigationBar(
+          screenType: ScreenType.home,
+          onButtonPressed: (type) => handleFooterButton(context, type),
+        ),
+      )
     );
   }
 }
