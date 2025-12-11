@@ -18,7 +18,8 @@ class HostLobbyPage extends StatefulWidget {
 
 class _HostLobbyPageState extends State<HostLobbyPage> {
   late final int lobbyID;
-  String username = 'Host';
+  late int userID;
+  late int hostID; // id of the Host that will be used
   List<dynamic> players = [];
 
   List<String> subjects = [];
@@ -38,6 +39,8 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
     final data = widget.data;
 
     lobbyID = data["lobbyID"] ?? 0;
+    hostID = data["hostID"];
+    userID = data["userID"];
 
     subjects = List<String>.from(data["subjectName"] ?? []);
     maxPlayersOptions = List<int>.from(data["maxPlayers"] ?? []);
@@ -88,7 +91,8 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
       onPopInvoked: LeaveLobby.onPopInvoked(
         context: context,
         lobbyID: lobbyID,
-        username: username,
+        userID: userID,
+        hostID: hostID, // vieleicht zu user und host id einzeln ändern
       ),
       // Scaffold is the part for the main part for the showing of the site
       child: Scaffold(

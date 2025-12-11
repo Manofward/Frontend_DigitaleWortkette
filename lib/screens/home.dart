@@ -11,7 +11,7 @@ class DWKHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Digitale Wortkette')),
+      appBar: AppBar(title: const Text('Digitale Wortkette', style: TextStyle(fontWeight: FontWeight.bold))),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -26,7 +26,7 @@ class DWKHomePage extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: Text(
                 'Offene Spiele',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
             ),
             const SizedBox(height: 16),

@@ -17,3 +17,8 @@
 # Important:
 1. use Multithreading for the GET/POST and the posts
 2. handling permissions for phone so its possible to make a release build which can use the permissions
+
+
+# For the usernames to solve the bugs we have and to make it more efficient the backend needs to add a new object in which hostids will be saved so that it can be determined who is the Host and can close the lobby and non hosts can only leave the lobby.
+1. userids in generell are needed in the backend and then the endpoints need to be updated to get the ids
+2. all sites need to be changed to use the userids and the hostids.

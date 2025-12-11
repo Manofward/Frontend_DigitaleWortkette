@@ -6,7 +6,8 @@ class LeaveLobby {
   static PopInvokedCallback onPopInvoked({
     required BuildContext context,
     required int lobbyID,
-    required String username,
+    required int userID,
+    required int hostID
   }) {
     return (bool didPop) async {
       if (didPop) return;
@@ -30,7 +31,7 @@ class LeaveLobby {
       );
 
       if (shouldLeave == true) {
-        await ApiService.leaveGame(lobbyID, username);
+        await ApiService.leaveGame(lobbyID, userID, hostID);
 
         if (context.mounted) {
           Navigator.of(context).pop();

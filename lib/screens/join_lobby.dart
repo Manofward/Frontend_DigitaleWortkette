@@ -1,9 +1,11 @@
+// i need here to talk with david as to how i get the userID from the backend
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import '../../services/navigation.dart';
 import '../../factories/screen_factory.dart';
 import '../services/polling/poll_manager.dart';
 import '../Widgets/pop_leave_game.dart';
+import '../Widgets/footer_nav_bar.dart';
 
 class JoinLobbyPage extends StatefulWidget {
   final Map<String, dynamic> lobbyData;
@@ -23,12 +25,16 @@ class _JoinLobbyPageState extends State<JoinLobbyPage> {
   // Local player settings
   bool ready = false;
   String username = "";
+  late int hostID;
+  late int userID;// this line is the try to change the username unique key to IDs 
 
   int get lobbyID => widget.lobbyData['lobbyID'];
 
   @override
   void initState() {
     super.initState();
+    hostID = 0;
+    userID = 0;
 
     // --- Poll lobby settings ---
     PollManager.startPolling(
@@ -68,7 +74,11 @@ class _JoinLobbyPageState extends State<JoinLobbyPage> {
 
   Future<void> _sendPlayerJoin() async {
     if (username.isEmpty) return;
-    await ApiService.postJoinLobby(lobbyID, username, ready);
+    final res = await ApiService.postJoinLobby(lobbyID, userID, hostID, username, ready); // try to change the username unique keys to IDs
+
+    if (userID == 0) {
+      userID = res["userID"];
+    }
   }
 
   @override
@@ -78,7 +88,8 @@ class _JoinLobbyPageState extends State<JoinLobbyPage> {
       onPopInvoked: LeaveLobby.onPopInvoked(
         context: context,
         lobbyID: lobbyID,
-        username: username,
+        userID: userID,
+        hostID: hostID, // vieleicht zu host und user id einzeln machen
       ),
       // this is the normal join lobby part
       child: Scaffold(
@@ -135,6 +146,10 @@ class _JoinLobbyPageState extends State<JoinLobbyPage> {
               ),
             ],
           ),
+        ),
+        bottomNavigationBar: FooterNavigationBar(
+          screenType: ScreenType.home,
+          onButtonPressed: (type) => handleFooterButton(context, type),
         ),
       )
     );
