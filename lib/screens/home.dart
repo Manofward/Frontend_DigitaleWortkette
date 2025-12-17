@@ -4,6 +4,7 @@ import '../services/navigation.dart';
 import 'package:flutter_frontend/Widgets/custom_scaffold.dart';
 import '../Widgets/open_games_list.dart';
 import '../Widgets/footer_nav_bar.dart';
+import '../utils/theme/app_theme.dart';
 
 class DWKHomePage extends StatelessWidget {
   const DWKHomePage({super.key});
@@ -11,22 +12,22 @@ class DWKHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Digitale Wortkette', style: TextStyle(fontWeight: FontWeight.bold))),
+      appBar: AppBar(title: Text('Digitale Wortkette', style: AppTheme.lightTheme.textTheme.headlineLarge)),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             ButtonCentered(
-              label: 'Erstelle Spiel',
+              label: 'Erstelle Spiel', 
               icon: Icons.videogame_asset,
               onPressed: () => createGame(context),
             ),
             const SizedBox(height: 32),
-            const Align(
+            Align(
               alignment: Alignment.centerLeft,
               child: Text(
                 'Offene Spiele',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: AppTheme.lightTheme.textTheme.titleLarge,
               ),
             ),
             const SizedBox(height: 16),

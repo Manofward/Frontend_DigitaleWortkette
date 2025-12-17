@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../utils/theme/app_theme.dart';
 
 class LeaveLobby {
   /// Returns a function that can be used directly as `onPopInvoked`
@@ -15,16 +16,20 @@ class LeaveLobby {
       final shouldLeave = await showDialog<bool>(
         context: context,
         builder: (_) => AlertDialog(
-          title: const Text("Spiel verlassen?"),
-          content: const Text("Willst du die Lobby wirklich verlassen?"),
+          title: Text("Spiel verlassen?", style: AppTheme.lightTheme.textTheme.titleLarge),
+          content: Text("Willst du die Lobby wirklich verlassen?", style: AppTheme.lightTheme.textTheme.bodyMedium),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text("Nein"),
+              child: Text("Nein", style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
+                      color: AppTheme.lightTheme.colorScheme.secondary),
+                      ),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text("Ja"),
+              child: Text("Ja", style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
+                      color: AppTheme.lightTheme.colorScheme.secondary),
+                     ),
             ),
           ],
         ),

@@ -3,6 +3,7 @@ import '../services/polling/poll_manager.dart';
 import '../../services/api_service.dart';
 import '../../services/navigation.dart';
 import '../factories/screen_factory.dart';
+import '../utils/theme/app_theme.dart';
 
 class OpenGamesList extends StatefulWidget {
   const OpenGamesList({super.key});
@@ -44,7 +45,7 @@ class _OpenGamesListState extends State<OpenGamesList> {
     if (loading) return const Center(child: CircularProgressIndicator());
 
     if (openGames.isEmpty) {
-      return const Center(child: Text("Keine offenen Spiele verfügbar"));
+      return Center(child: Text("Keine offenen Spiele verfügbar", style: AppTheme.lightTheme.textTheme.bodySmall));
     }
 
     return ListView.builder(
@@ -54,11 +55,35 @@ class _OpenGamesListState extends State<OpenGamesList> {
 
         return Card(
           child: ListTile(
-            title: Text("Lobby: ${game['lobbyID']}"),
-            subtitle: Text(
-                "Thema: ${game['topic']} • Max Spieler: ${game['players']}"),
+            title: Text("Lobby: ${game['lobbyID']}", style: AppTheme.lightTheme.textTheme.bodyLarge),
+            subtitle: RichText(
+                text: TextSpan(
+                  style: AppTheme.lightTheme.textTheme.bodyMedium, // general font size of the Lobby Data
+                  children: <TextSpan>[
+                    // subject
+                    const TextSpan(text: "Thema: "),
+                    TextSpan(
+                      text: "${game['topic']}", // should show the subject text
+                      style: TextStyle(
+                        color: AppTheme.lightTheme.colorScheme.primary//Colors.orange[900],
+                      ),
+                    ),
+                    TextSpan(text:"\n"),
+
+                    // Max Game Length
+                    const TextSpan(text: "Max Spieler: "),
+                    TextSpan(
+                      text: "${game['players']}",
+                      style: TextStyle(
+                        color: AppTheme.lightTheme.colorScheme.primary
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             trailing: IconButton(
               icon: const Icon(Icons.play_arrow),
+              iconSize: 40,
               onPressed: () {
                 NavigationService.navigate(
                   context,

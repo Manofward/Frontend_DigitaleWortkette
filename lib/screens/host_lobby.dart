@@ -7,6 +7,7 @@ import '../Widgets/dropdown_row.dart';
 import '../Widgets/footer_nav_bar.dart';
 import '../Widgets/pop_leave_game.dart';
 import '../factories/screen_factory.dart';
+import '../utils/theme/app_theme.dart';
 
 class HostLobbyPage extends StatefulWidget {
   final Map<String, dynamic> data;
@@ -38,6 +39,7 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
 
     final data = widget.data;
 
+    
     lobbyID = data["lobbyID"] ?? 0;
     hostID = data["hostID"];
     userID = data["userID"];
@@ -96,7 +98,7 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
       ),
       // Scaffold is the part for the main part for the showing of the site
       child: Scaffold(
-        appBar: AppBar(title: Text("Lobby #$lobbyID")),
+        appBar: AppBar(title: Text("Lobby #$lobbyID", style: AppTheme.lightTheme.textTheme.headlineLarge)),
         body: Padding(
           padding: const EdgeInsets.all(18),
           child: Column(
@@ -104,7 +106,7 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
             children: [
               // Thema Dropdown (self-contained)
               DropdownRow(
-                label: "Thema",
+                label: "Thema:",
                 initialValue: selectedSubject,
                 items: subjects,
                 onChanged: (v) {
@@ -116,7 +118,7 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
 
               // Game Length Dropdown
               DropdownRow(
-                label: "Spiellänge",
+                label: "Spiellänge:",
                 initialValue: "$selectedGameLength Min",
                 items: gameLengths.map((e) => "$e Min").toList(),
                 onChanged: (v) {
@@ -129,7 +131,7 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
 
               // Max Players Dropdown
               DropdownRow(
-                label: "Max Spieler",
+                label: "Max Spieler:",
                 initialValue: selectedMaxPlayers.toString(),
                 items: maxPlayersOptions.map((e) => e.toString()).toList(),
                 onChanged: (v) {
@@ -142,14 +144,15 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
 
               const SizedBox(height: 15),
 
+              // show qr Code Button
               ElevatedButton.icon(
-                icon: const Icon(Icons.qr_code),
-                label: const Text("QR Code anzeigen"),
+                icon: Icon(Icons.qr_code, size: 22, color: AppTheme.lightTheme.colorScheme.secondary,),
+                label: Text("QR Code anzeigen", style: AppTheme.lightTheme.textTheme.bodyLarge?.copyWith(color: AppTheme.lightTheme.colorScheme.secondary)),
                 onPressed: _showQrCode,
               ),
 
               const Divider(height: 30),
-              const Text("Spieler:", style: TextStyle(fontSize: 18)),
+              Text("Spieler:", style: AppTheme.lightTheme.textTheme.bodyLarge),
               const SizedBox(height: 10),
 
               // Player list updates continuously without dropdown interference
@@ -157,7 +160,7 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
                 child: ListView(
                   children: players
                       .map((p) => ListTile(
-                            title: Text(p['username'] ?? '-'),
+                            title: Text(p['username'] ?? '-', style: AppTheme.lightTheme.textTheme.bodyLarge,),
                             trailing: Icon(
                               p['isPlayerReady'] == "true"
                                   ? Icons.check_circle
@@ -165,15 +168,17 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
                               color: p['isPlayerReady'] == "true"
                                   ? Colors.green
                                   : Colors.red,
+                              size: 32,
                             ),
                           ))
                       .toList(),
                 ),
               ),
 
+              // start Game Button
               ElevatedButton.icon(
-                icon: const Icon(Icons.play_arrow),
-                label: const Text("Spiel starten"),
+                icon: Icon(Icons.play_arrow, size: 22, color: AppTheme.lightTheme.colorScheme.secondary,),
+                label: Text("Spiel starten", style: AppTheme.lightTheme.textTheme.bodyLarge?.copyWith(color: AppTheme.lightTheme.colorScheme.secondary)),
                 onPressed: () {
                   NavigationService.navigate(
                     context,

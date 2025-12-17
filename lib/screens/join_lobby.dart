@@ -167,20 +167,27 @@ class _JoinLobbyPageState extends State<JoinLobbyPage> {
                             labelText: "Dein Benutzername",
                             labelStyle: AppTheme.lightTheme.textTheme.bodySmall,
                           ),
-                          style: AppTheme.lightTheme.textTheme.bodyLarge?.copyWith(color: AppTheme.lightTheme.colorScheme.secondary),
+                          style: AppTheme.lightTheme.textTheme.bodyLarge?.copyWith(color: AppTheme.lightTheme.colorScheme.primary),
                           onChanged: (v) {
                             username = v;
                           },
                         ),
-                        // need to edit the size here
-                        trailing: Switch(
-                          value: isReady,
-                          onChanged: (v) {
-                            setState(() {
-                              ready = v;
-                            });
-                            _sendPlayerJoin();
-                          },
+                        // need to edit the size here (i dont know if everything is alright as of now because of the broken backend)
+                        trailing: SizedBox(
+                          width: 65,
+                          height: 50,
+                          child: FittedBox(
+                            fit: BoxFit.fill,
+                            child: Switch(
+                              value: isReady,
+                              onChanged: (v) {
+                                setState(() {
+                                  ready = v;
+                                });
+                                _sendPlayerJoin();
+                              },
+                            ),
+                          ),
                         ),
                       );
                     }
@@ -191,7 +198,7 @@ class _JoinLobbyPageState extends State<JoinLobbyPage> {
                       trailing: Icon(
                         isReady ? Icons.check_circle : Icons.cancel,
                         color: isReady ? Colors.green : Colors.red,
-                        size: 16, // need here to edit the size too 
+                        size: 32,
                       ),
                     );
                   }).toList(),
@@ -200,7 +207,6 @@ class _JoinLobbyPageState extends State<JoinLobbyPage> {
             ],
           ),
         ),
-        // and here needs the footer to use the golden ratio
         bottomNavigationBar: FooterNavigationBar(
           screenType: ScreenType.home,
           onButtonPressed: (type) => handleFooterButton(context, type),

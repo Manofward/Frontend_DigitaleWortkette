@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import'../utils/theme/app_theme.dart';
 import '../factories/screen_factory.dart';
 
 enum FooterButtonType { settings, manual, qrScanner, home } // This has the definitions for the Footer Buttons
@@ -20,11 +21,11 @@ class FooterNavigationBar extends StatelessWidget {
       {'icon': Icons.home, 'label': 'Startseite', 'type': FooterButtonType.home},
       {'icon': Icons.settings, 'label': 'Einstellungen', 'type': FooterButtonType.settings},
       {'icon': Icons.menu_book, 'label': 'Anleitung', 'type': FooterButtonType.manual},
-      {'icon': Icons.qr_code_scanner, 'label': 'QR-Code Scanner', 'type': FooterButtonType.qrScanner},
-    ];
+      {'icon': Icons.qr_code_scanner, 'label': 'Scanner', 'type': FooterButtonType.qrScanner},
+    ];// QR-Code 
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
       decoration: const BoxDecoration(
         color: Color(0xFFE0E0E0),
         border: Border(top: BorderSide(color: Colors.grey)),
@@ -44,14 +45,14 @@ class FooterNavigationBar extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(btn['icon'] as IconData, color: isActive ? Colors.blue : Colors.grey, size: 28),
+                  Icon(btn['icon'] as IconData, color: isActive ? Colors.blue : Colors.grey, size: 40),
                   const SizedBox(height: 4),
                   Text(
                     btn['label'] as String,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: isActive ? Colors.blue : Colors.grey,
-                          fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                        ),
+                    style: AppTheme.lightTheme.textTheme.bodySmall?.copyWith(
+                      color: isActive ? AppTheme.lightTheme.colorScheme.secondary : Colors.grey,
+                      fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                    ),
                   ),
                 ],
               ),

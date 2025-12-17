@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/theme/app_theme.dart';
 
 class DropdownRow extends StatefulWidget {
   final String label;
@@ -32,7 +33,7 @@ class _DropdownRowState extends State<DropdownRow> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6.0),
+      padding: const EdgeInsets.symmetric(vertical: 7.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -40,7 +41,7 @@ class _DropdownRowState extends State<DropdownRow> {
             flex: 2,
             child: Text(
               widget.label,
-              style: const TextStyle(fontSize: 16),
+              style: AppTheme.lightTheme.textTheme.bodyLarge,
             ),
           ),
           Expanded(
@@ -51,7 +52,7 @@ class _DropdownRowState extends State<DropdownRow> {
               items: widget.items
                   .map((item) => DropdownMenuItem(
                         value: item,
-                        child: Text(item),
+                        child: Text(item, style: AppTheme.lightTheme.textTheme.bodyMedium),
                       ))
                   .toList(),
               onChanged: (v) {
