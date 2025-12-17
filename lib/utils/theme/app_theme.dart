@@ -7,7 +7,7 @@ class AppTheme {
     colorScheme: ColorScheme.fromSeed(
       seedColor: Colors.orange,
       primary: Colors.orange[900],
-      secondary: Colors.limeAccent[700],
+      secondary: Colors.blueAccent[400],
     ),
 
     textTheme: TextTheme(
@@ -21,12 +21,16 @@ class AppTheme {
       ),
       bodyLarge: TextStyle(
         fontSize: GoldenRatio.body,
-        fontWeight: FontWeight.w400,
+        fontWeight: FontWeight.w500,
+      ),
+      bodyMedium: TextStyle(
+        fontSize: GoldenRatio.medium,
+        fontWeight: FontWeight.w500,
       ),
       bodySmall: TextStyle(
         fontSize: GoldenRatio.small,
-        fontWeight: FontWeight.w300,
-      ),
+        fontWeight: FontWeight.w500,
+      )
     ),
     /* appBar Theming
     appBarTheme: AppBarTheme(
