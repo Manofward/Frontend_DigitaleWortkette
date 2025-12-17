@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:permission_handler/permission_handler.dart';
+import 'factories/screen_factory.dart';
+import 'services/polling/navigator_poll_observer.dart'; // added to try and make polls are not used when leaving theyre coresponding page
 
-void main() {
+Future<void> askPermissions() async {
+  await Permission.camera.request();
+  await Permission.microphone.request();
+}
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await askPermissions();
   runApp(const DWKApp());
 }
 
@@ -13,96 +22,56 @@ class DWKApp extends StatelessWidget {
     return MaterialApp(
       title: 'Digitale Wortkette Client',
       theme: ThemeData(primarySwatch: Colors.deepPurple),
-      home: const DWKHomePage(),
+      home: PermissionGate(
+        child: ScreenFactory.createScreen(ScreenType.home),
+      ),
+      navigatorObservers: [
+        StopPollingObserver(),
+      ],
     );
   }
 }
 
-class DWKHomePage extends StatefulWidget {
-  const DWKHomePage({super.key});
+class PermissionGate extends StatefulWidget {
+  final Widget child;
+
+  const PermissionGate({super.key, required this.child});
 
   @override
-  State<DWKHomePage> createState() => _DWKHomePageState();
+  State<PermissionGate> createState() => _PermissionGateState();
 }
 
-class _DWKHomePageState extends State<DWKHomePage> {
-  String _response = 'Press a button to call your Flask API';
+class _PermissionGateState extends State<PermissionGate> {
+  bool _permissionsGranted = false;
 
-  // 🧠 Adjust the base URL depending on your setup
-  // For Android emulator → 10.0.2.2
-  // For physical device → your computer's IP, e.g. 192.168.1.5
-  final String baseUrl = 'http://10.0.2.2:5000';
+  @override
+  void initState() {
+    super.initState();
+    _checkPermissions();
+  }
 
-  Future<void> _callEndpoint(String endpoint) async {
-    setState(() {
-      _response = 'Loading $endpoint ...';
-    });
+  Future<void> _checkPermissions() async {
+    var cameraStatus = await Permission.camera.request();
+    var micStatus    = await Permission.microphone.request();
 
-    try {
-      final res = await http.get(Uri.parse('$baseUrl$endpoint'));
-      if (res.statusCode == 200) {
-        setState(() {
-          _response = res.body;
-        });
-      } else {
-        setState(() {
-          _response = 'Error ${res.statusCode}: ${res.reasonPhrase}';
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _response = 'Failed to connect: $e';
-      });
+    if (cameraStatus.isGranted && micStatus.isGranted) {
+      setState(() => _permissionsGranted = true);
+    } else if (cameraStatus.isPermanentlyDenied ||
+               micStatus.isPermanentlyDenied) {
+      openAppSettings();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Digitale Wortkette (Flask Test)'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            ElevatedButton(
-              onPressed: () => _callEndpoint('/api/v1/dwk/home'),
-              child: const Text('GET /api/v1/dwk/home'),
-            ),
-            const SizedBox(height: 8),
-            ElevatedButton(
-              onPressed: () => _callEndpoint('/spec'),
-              child: const Text('GET /spec (Swagger Spec)'),
-            ),
-            const SizedBox(height: 8),
-            ElevatedButton(
-              onPressed: () => _callEndpoint('/temp'),
-              child: const Text('GET /temp (UserModel Resource)'),
-            ),
-            const SizedBox(height: 16),
-            const Text('Response:', style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(8),
-                    color: Colors.black12,
-                  ),
-                  child: Text(
-                    _response,
-                    style: const TextStyle(fontFamily: 'monospace'),
-                  ),
-                ),
-              ),
-            ),
-          ],
+    if (!_permissionsGranted) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
         ),
-      ),
-    );
+      );
+    }
+
+    return widget.child;
   }
 }
