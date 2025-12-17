@@ -1,16 +1,10 @@
-/* TODOs:
-1. The Title: "Digitale Wortkette" and "offene Spiele" have to be edited so that maybe the big title is similar to the other
-2. linkings to the settings page and qr-Code scanner have to be made and the pages itself too
-3. when you go from host-lobby page back to homepage through the back or home button the lobby needs to be deleted
-4. when you go from the host-lobby page to home you need to get the automatic gamelist updates
-5. automatic updating needs to be added again
-*/
 import 'package:flutter/material.dart';
 import '../factories/screen_factory.dart';
 import '../services/navigation.dart';
 import 'package:flutter_frontend/Widgets/custom_scaffold.dart';
 import '../Widgets/open_games_list.dart';
 import '../Widgets/footer_nav_bar.dart';
+import '../utils/theme/app_theme.dart';
 
 class DWKHomePage extends StatelessWidget {
   const DWKHomePage({super.key});
@@ -18,22 +12,22 @@ class DWKHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Digitale Wortkette')),
+      appBar: AppBar(title: Text('Digitale Wortkette', style: AppTheme.lightTheme.textTheme.headlineLarge)),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             ButtonCentered(
-              label: 'Erstelle Spiel',
+              label: 'Erstelle Spiel', 
               icon: Icons.videogame_asset,
               onPressed: () => createGame(context),
             ),
             const SizedBox(height: 32),
-            const Align(
+            Align(
               alignment: Alignment.centerLeft,
               child: Text(
                 'Offene Spiele',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: AppTheme.lightTheme.textTheme.titleLarge,
               ),
             ),
             const SizedBox(height: 16),
