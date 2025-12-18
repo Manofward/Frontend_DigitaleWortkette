@@ -1,5 +1,18 @@
-// i need here to talk with david as to how i get the userID from the backend
-// need to add fontsizes
+/*
+  |------------------------------|
+  |           AppBar             |
+  |------------------------------|
+  |Thema:                  $Thema|
+  |Spielzeit:          $spielzeit|
+  |Max Spieler:       $maxSpieler|
+  |------------------------------|
+  |Spieler:                      |
+  |Listview                      |
+  |------------------------------|
+  |             Navbar           |
+  |------------------------------|
+*/
+
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import '../../services/navigation.dart';
@@ -7,9 +20,9 @@ import '../../factories/screen_factory.dart';
 import '../services/polling/poll_manager.dart';
 import '../Widgets/pop_leave_game.dart';
 import '../Widgets/footer_nav_bar.dart';
-
 import'../utils/theme/app_theme.dart';
 import '../utils/get_username.dart';
+import '../Widgets/loading_animation.dart';
 
 class JoinLobbyPage extends StatefulWidget {
   final Map<String, dynamic> lobbyData;
@@ -37,6 +50,12 @@ class _JoinLobbyPageState extends State<JoinLobbyPage> {
 
   int get lobbyID => widget.lobbyData['lobbyID'];
 
+  // adding loading
+  bool hasLobbyData = false;
+  bool hasPlayersData = false;
+
+  bool get hasInitialData => hasLobbyData && hasPlayersData;
+
   @override
   void initState() {
     super.initState();
@@ -56,6 +75,11 @@ class _JoinLobbyPageState extends State<JoinLobbyPage> {
           chosenSubjectName = res["chosenSubjectName"];
           chosenMaxPlayers = res["chosenMaxPlayers"];
           chosenMaxGameLength = res["chosenMaxGameLength"];
+
+          // adding loading animation
+          if(!hasInitialData && res.isNotEmpty) {
+            hasLobbyData = true;
+          }
         });
       },
     );
@@ -67,7 +91,14 @@ class _JoinLobbyPageState extends State<JoinLobbyPage> {
       onUpdate: (res) {
         if (!mounted || res == null) return;
 
-        setState(() => players = res);
+        setState(() {
+          players = res;
+
+          // adding a loading screen
+          if(!hasInitialData && players.isNotEmpty) {
+            hasPlayersData = true;
+          }
+        });
 
         // Auto-start if all ready
         if (players.isNotEmpty && players.every((p) => p['ready'] == true)) {
@@ -106,111 +137,126 @@ class _JoinLobbyPageState extends State<JoinLobbyPage> {
         appBar: AppBar(title: Text("Lobby #$lobbyID", 
                        style: AppTheme.lightTheme.textTheme.headlineLarge?.copyWith(color: AppTheme.lightTheme.colorScheme.onSurface)),
                       ),
-        body: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Richtext for the lobby Data
-              RichText(
-                text: TextSpan(
-                  style: AppTheme.lightTheme.textTheme.titleLarge, // general font size of the Lobby Data
-                  children: <TextSpan>[
-                    // subject
-                    const TextSpan(text: "Thema: "),
-                    TextSpan(
-                      text: chosenSubjectName, // should show the subject text
-                      style: TextStyle(
-                        color: AppTheme.lightTheme.colorScheme.primary//Colors.orange[900],
-                      ),
-                    ),
-                    TextSpan(text:"\n"),
-
-                    // Max Game Length
-                    const TextSpan(text: "Spielzeit: "),
-                    TextSpan(
-                      text: "$chosenMaxGameLength Minuten",
-                      style: TextStyle(
-                        color: AppTheme.lightTheme.colorScheme.primary
-                      ),
-                    ),
-                    TextSpan(text: "\n"),
-
-                    // max players
-                    const TextSpan(text: "Max Spieler: "),
-                    TextSpan(
-                      text: chosenMaxPlayers, 
-                      style: TextStyle(
-                        color: AppTheme.lightTheme.colorScheme.primary
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              
-              const SizedBox(height: 20),
-              Text("Spieler:", style: AppTheme.lightTheme.textTheme.bodyLarge),
-
-              Expanded(
-                child: ListView(
-                  children: players.map((p) {
-                    final bool isMe = p["userID"] == userID;
-                    final bool isReady = p["isPlayerReady"] == "true";
-
-                    if (isMe) {
-                      // --- LOCAL PLAYER ROW (editable) ---
-                      return ListTile(
-                        title: TextField(
-                          enabled: !isReady,
-                          controller: _myUsernameController,
-                          decoration: InputDecoration(
-                            labelText: "Dein Benutzername",
-                            labelStyle: AppTheme.lightTheme.textTheme.bodySmall,
+        body: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Richtext for the lobby Data
+                  RichText(
+                    text: TextSpan(
+                      style: AppTheme.lightTheme.textTheme.titleLarge, // general font size of the Lobby Data
+                      children: <TextSpan>[
+                        // subject
+                        const TextSpan(text: "Thema: "),
+                        TextSpan(
+                          text: chosenSubjectName, // should show the subject text
+                          style: TextStyle(
+                            color: AppTheme.lightTheme.colorScheme.primary//Colors.orange[900],
                           ),
-                          style: AppTheme.lightTheme.textTheme.bodyLarge?.copyWith(color: AppTheme.lightTheme.colorScheme.primary),
-                          onChanged: (v) {
-                            username = v;
-                          },
                         ),
-                        // need to edit the size here (i dont know if everything is alright as of now because of the broken backend)
-                        trailing: SizedBox(
-                          width: 65,
-                          height: 50,
-                          child: FittedBox(
-                            fit: BoxFit.fill,
-                            child: Switch(
-                              value: isReady,
+                        TextSpan(text:"\n"),
+
+                        // Max Game Length
+                        const TextSpan(text: "Spielzeit: "),
+                        TextSpan(
+                          text: "$chosenMaxGameLength Minuten",
+                          style: TextStyle(
+                            color: AppTheme.lightTheme.colorScheme.primary
+                          ),
+                        ),
+                        TextSpan(text: "\n"),
+
+                        // max players
+                        const TextSpan(text: "Max Spieler: "),
+                        TextSpan(
+                          text: chosenMaxPlayers, 
+                          style: TextStyle(
+                            color: AppTheme.lightTheme.colorScheme.primary
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 20),
+                  Text("Spieler:", style: AppTheme.lightTheme.textTheme.bodyLarge),
+
+                  // PlayerList will be show here
+                  Expanded(
+                    child: ListView(
+                      children: players.map((p) {
+                        final bool isMe = p["userID"] == userID;
+                        final bool isReady = p["isPlayerReady"] == "true";
+
+                        if (isMe) {
+                          // --- LOCAL PLAYER ROW (editable) ---
+                          return ListTile(
+                            title: TextField(
+                              enabled: !isReady,
+                              controller: _myUsernameController,
+                              decoration: InputDecoration(
+                                labelText: "Dein Benutzername",
+                                labelStyle: AppTheme.lightTheme.textTheme.bodySmall,
+                              ),
+                              style: AppTheme.lightTheme.textTheme.bodyLarge?.copyWith(color: AppTheme.lightTheme.colorScheme.primary),
                               onChanged: (v) {
-                                setState(() {
-                                  ready = v;
-                                });
-                                _sendPlayerJoin();
+                                username = v;
                               },
                             ),
-                          ),
-                        ),
-                      );
-                    }
+                            // need to edit the size here (i dont know if everything is alright as of now because of the broken backend)
+                            trailing: SizedBox(
+                              width: 65,
+                              height: 50,
+                              child: FittedBox(
+                                fit: BoxFit.fill,
+                                child: Switch(
+                                  value: isReady,
+                                  onChanged: (v) {
+                                    setState(() {
+                                      ready = v;
+                                    });
+                                    _sendPlayerJoin();
+                                  },
+                                ),
+                              ),
+                            ),
+                          );
+                        }
 
-                    // --- OTHER PLAYER ROW (read only) ---
-                    return ListTile(
-                      title: Text(p["username"], style: AppTheme.lightTheme.textTheme.bodyLarge),
-                      trailing: Icon(
-                        isReady ? Icons.check_circle : Icons.cancel,
-                        color: isReady ? Colors.green : Colors.red,
-                        size: 32,
-                      ),
-                    );
-                  }).toList(),
-                ),
+                        // --- OTHER PLAYER ROW (read only) ---
+                        return ListTile(
+                          title: Text(p["username"], style: AppTheme.lightTheme.textTheme.bodyLarge),
+                          trailing: Icon(
+                            isReady ? Icons.check_circle : Icons.cancel,
+                            color: isReady ? Colors.green : Colors.red,
+                            size: 32,
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  )
+                ],
               ),
-            ],
-          ),
+            ),
+
+            // loading data animation
+            if (!hasInitialData)
+              Positioned.fill(
+                child: SizedBox(
+                  width: 80,
+                  height: 80,
+                  child: LoadingAnimation.loadingAnimation(),
+                ),
+              ), // end Positioned.fill
+          ],
         ),
         bottomNavigationBar: FooterNavigationBar(
           screenType: ScreenType.home,
           onButtonPressed: (type) => handleFooterButton(context, type),
-        ),
+        ),        
       )
     );
   }
