@@ -12,6 +12,7 @@ dependencies:
   http: ^1.2.0
   pretty_qr_code: ^3.5.0
   permission_handler: ^11.0.0
+  loading_animation_widget: 
 
 dev_dependencies:
   flutter_test:
