@@ -8,6 +8,7 @@ import '../Widgets/footer_nav_bar.dart';
 import '../Widgets/pop_leave_game.dart';
 import '../factories/screen_factory.dart';
 import '../utils/theme/app_theme.dart';
+import '../services/polling/poll_manager.dart';
 
 class HostLobbyPage extends StatefulWidget {
   final Map<String, dynamic> data;
@@ -31,7 +32,9 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
   late int selectedMaxPlayers;
   late int selectedGameLength;
 
-  Timer? _pollTimer;
+  //Timer? _pollTimer;
+  bool hasPlayersData = false;
+  bool get hasInitialData => hasPlayersData;
 
   @override
   void initState() {
@@ -56,22 +59,43 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
   }
 
   void _startPlayerPolling() {
-    _pollTimer ??= Timer.periodic(const Duration(seconds: 5), (_) async {
-      final res = await ApiService.getLobbyPlayers(lobbyID);
-      if (mounted) {
-        setState(() => players = res);
-      }
-    });
+    // --- Poll player list ---
+    PollManager.startPolling(
+      interval: const Duration(seconds: 3),
+      task: () => ApiService.getLobbyPlayers(lobbyID),
+      onUpdate: (res) {
+        if (!mounted || res == null) return;
+
+        setState(() {
+          players = res;
+
+          // adding a loading screen
+          if(!hasInitialData && players.isNotEmpty) {
+            hasPlayersData = true;
+          }
+        });
+
+        // Auto-start if all ready
+        if (players.isNotEmpty && players.every((p) => p['ready'] == true)) {
+          NavigationService.navigate(
+            context,
+            ScreenType.game,
+            arguments: {'lobbyID': lobbyID},
+          );
+        }
+      },
+    );
   }
 
-  @override
+  /*@override
   void dispose() {
     _pollTimer?.cancel();
     super.dispose();
-  }
+  }*/
 
   Future<void> _updateSetting(String key, dynamic value) async {
     await ApiService.updateHostLobbySetting({key: value.toString()});
+    _startPlayerPolling();
   }
 
   void _showQrCode() {
@@ -183,7 +207,7 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
                   NavigationService.navigate(
                     context,
                     ScreenType.game,
-                    arguments: {'code': lobbyID.toString()},
+                    arguments: {"lobbyID": lobbyID},
                   );
                 },
               ),

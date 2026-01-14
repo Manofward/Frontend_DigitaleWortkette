@@ -3,8 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class ApiService {
-  //static const String baseUrl = 'http://172.16.34.70:5000/api/v1/dwk'; // for testing with more real endpoints
-  static const String baseUrl = 'http://172.16.34.65:5000/api/v1/dwk'; // for the docker 
+  static const String baseUrl = 'http://172.16.34.22:5000/api/v1/dwk'; // for testing with more real endpoints
+  //static const String baseUrl = 'http://172.16.34.18:5000/api/v1/dwk'; // for the docker 
   //static const String baseUrl = 'http://10.0.2.2:5000/api/v1/dwk'; // for local testing
 
   // --------------------------
@@ -44,6 +44,7 @@ class ApiService {
       );
 
       if (res.statusCode == 200 || res.statusCode == 201) {
+        debugPrint("POST: $res.body");
         return jsonDecode(res.body);
       }
 
