@@ -2,6 +2,21 @@ import 'package:flutter/material.dart';
 import '../factories/screen_factory.dart';
 import '../Widgets/footer_nav_bar.dart';
 import 'api_service.dart';
+import '../Widgets/pop_leave_game.dart';
+
+class LobbySession {
+  static int? lobbyID;
+  static int? userID;
+  static int? hostID;
+
+  static bool get isActive => lobbyID != null;
+
+  static void clear() {
+    lobbyID = null;
+    userID = null;
+    hostID = null;
+  }
+}
 
 class NavigationService {
   static void navigate(BuildContext context, ScreenType screen,
@@ -32,8 +47,18 @@ class NavigationService {
 }
 
 /// Handles footer button taps
-Future<void> handleFooterButton(
-    BuildContext context, FooterButtonType type) async {
+Future<void> handleFooterButton(BuildContext context, FooterButtonType type) async {
+  if (type == FooterButtonType.qrScanner || type == FooterButtonType.home && LobbySession.isActive) {
+    final left = await LeaveLobby.confirmLeave(
+      context: context,
+      lobbyID: LobbySession.lobbyID!,
+      userID: LobbySession.userID!,
+      hostID: LobbySession.hostID!,
+    );
+
+    if (!left) return;
+  } 
+
   switch (type) {
     case FooterButtonType.settings:
       NavigationService.navigate(context, ScreenType.settings);

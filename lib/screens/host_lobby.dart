@@ -47,6 +47,11 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
     hostID = data["hostID"];
     userID = data["userID"];
 
+    LobbySession.lobbyID = lobbyID;
+    LobbySession.userID = userID;
+    LobbySession.hostID = hostID;
+
+
     subjects = List<String>.from(data["subjectName"] ?? []);
     maxPlayersOptions = List<int>.from(data["maxPlayers"] ?? []);
     gameLengths = List<int>.from(data["maxGameLength"] ?? []);
@@ -216,7 +221,7 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
         ),
         bottomNavigationBar: FooterNavigationBar(
           screenType: ScreenType.home,
-          onButtonPressed: (type) => handleFooterButton(context, type),
+          onButtonPressed: (type) => handleFooterButton(context, type)
         ),
       )
     );

@@ -42,13 +42,13 @@ class _JoinLobbyPageState extends State<JoinLobbyPage> {
   // Local player settings
   bool ready = false;
   String username = getUsername();
+  int get lobbyID => widget.lobbyData['lobbyID'];
   late int hostID = 0;
   late int userID = 0;// this line is the try to change the username unique key to IDs 
 
   // Controller ONLY for our own username
   late TextEditingController _myUsernameController;
 
-  int get lobbyID => widget.lobbyData['lobbyID'];
 
   // adding loading
   bool hasLobbyData = false;
@@ -59,6 +59,10 @@ class _JoinLobbyPageState extends State<JoinLobbyPage> {
   @override
   void initState() {
     super.initState();
+
+    LobbySession.lobbyID = lobbyID;
+    LobbySession.userID = userID;
+    LobbySession.hostID = hostID;
 
     _myUsernameController = TextEditingController(text: username);
 
