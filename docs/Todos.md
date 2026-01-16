@@ -7,18 +7,13 @@
    1. the DSGVO site should be made before you can go on the homepage of the app in the main.dart file
 
 # Playthings needed for main programm:
-1. When you want to leave the lobby as a player or close the lobby as a host a post is made for leaving the lobby
-   1. so that the lobby is deleted(host)
-      1. when you go from host-lobby page back to homepage through the back or home button the lobby needs to be deleted *(partly added)*
-   2. so that the player is deleted from the player list (player)
-      1. feature for leaving lobby needs to be added that when you leave the lobby as a player your username is deleted from the playerlist of the lobby *(partly added)*
-   3. in the lobby, that you can only start the lobby when all players are ready needs to be added. **Before starting with the main game!!!**
+1. in the lobby, that you can only start the lobby when all players are ready needs to be added. **Before starting with the main game!!!**
+2. Game Screen:
+   1. In the Game Screen the max time will be counted from the host which will end the game then.
+   2. in the Game Screen the word list will have the user_id so that the player list can be used to show the username of the one who said the word.
+   3. In the Game Screen the player list will be scrambled and then given out as the list which player is the next one in the list.
+   4. For the Game Screen when the host starts the game he sends a post to the backend for starting the game and the backend sends it to the other players per post. (if possible)
+   5. For the Game Screen a player should only be able to input a word into the backend, when he is in the list for the player who is the next one to input.
+   6. When the player inputs a word that already exists or has not the right letter in the beginning the backend will give back a message which should be shown on the screen.
 
-# Important:
-1. use Multithreading for the GET/POST and the posts
-2. handling permissions for phone so its possible to make a release build which can use the permissions
-
-
-# For the usernames to solve the bugs we have and to make it more efficient the backend needs to add a new object in which hostids will be saved so that it can be determined who is the Host and can close the lobby and non hosts can only leave the lobby.
-1. userids in generell are needed in the backend and then the endpoints need to be updated to get the ids
-2. all sites need to be changed to use the userids and the hostids.
+   7. When the Player who inputs a word posts something the backend makes a variable for update for all and on the next poll form the players flask gives back when the update all is true all the updated things
