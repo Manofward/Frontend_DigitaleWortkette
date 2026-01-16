@@ -5,6 +5,8 @@ import '../../services/navigation.dart';
 import '../factories/screen_factory.dart';
 import '../utils/theme/app_theme.dart';
 
+import '../Widgets/loading_animation.dart';
+
 class OpenGamesList extends StatefulWidget {
   const OpenGamesList({super.key});
 
@@ -14,7 +16,7 @@ class OpenGamesList extends StatefulWidget {
 
 class _OpenGamesListState extends State<OpenGamesList> {
   List<Map<String, dynamic>> openGames = [];
-  bool loading = true;
+  bool loading = false;
 
   @override
   void initState() {
@@ -33,7 +35,7 @@ class _OpenGamesListState extends State<OpenGamesList> {
         if (mounted) {
           setState(() {
             openGames = games;
-            loading = false;
+            loading = true;
           });
         }
       },
@@ -42,7 +44,7 @@ class _OpenGamesListState extends State<OpenGamesList> {
 
   @override
   Widget build(BuildContext context) {
-    if (loading) return const Center(child: CircularProgressIndicator());
+    if (!loading) return LoadingAnimation.loadingAnimation(); // added a general loading animation for if the loading process takes to long
 
     if (openGames.isEmpty) {
       return Center(child: Text("Keine offenen Spiele verfügbar", style: AppTheme.lightTheme.textTheme.bodySmall));

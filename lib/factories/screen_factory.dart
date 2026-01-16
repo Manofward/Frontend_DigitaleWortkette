@@ -30,9 +30,7 @@ class ScreenFactory {
     ScreenType.joinLobby: (args) => JoinLobbyPage(lobbyData: args ?? {}),
 
     /// ⛔ Game must also rebuild (new state)
-    ScreenType.game: (args) => GameScreen(
-          code: args != null && args.containsKey('code') ? args['code'].toString() : '',
-        ),
+    ScreenType.game: (args) => GameScreen(lobbyData: args ?? {}),
 
     ScreenType.results: (_) => const _PlaceholderScreen(title: 'Results'),
     ScreenType.settings: (_) => const _PlaceholderScreen(title: 'Settings'),

@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:pretty_qr_code/pretty_qr_code.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../services/api_service.dart';
 import '../../services/navigation.dart';
 import '../Widgets/dropdown_row.dart';
@@ -8,6 +8,7 @@ import '../Widgets/footer_nav_bar.dart';
 import '../Widgets/pop_leave_game.dart';
 import '../factories/screen_factory.dart';
 import '../utils/theme/app_theme.dart';
+import '../services/polling/poll_manager.dart';
 
 class HostLobbyPage extends StatefulWidget {
   final Map<String, dynamic> data;
@@ -31,7 +32,9 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
   late int selectedMaxPlayers;
   late int selectedGameLength;
 
-  Timer? _pollTimer;
+  //Timer? _pollTimer;
+  bool hasPlayersData = false;
+  bool get hasInitialData => hasPlayersData;
 
   @override
   void initState() {
@@ -43,6 +46,11 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
     lobbyID = data["lobbyID"] ?? 0;
     hostID = data["hostID"];
     userID = data["userID"];
+
+    LobbySession.lobbyID = lobbyID;
+    LobbySession.userID = userID;
+    LobbySession.hostID = hostID;
+
 
     subjects = List<String>.from(data["subjectName"] ?? []);
     maxPlayersOptions = List<int>.from(data["maxPlayers"] ?? []);
@@ -56,22 +64,37 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
   }
 
   void _startPlayerPolling() {
-    _pollTimer ??= Timer.periodic(const Duration(seconds: 5), (_) async {
-      final res = await ApiService.getLobbyPlayers(lobbyID);
-      if (mounted) {
-        setState(() => players = res);
-      }
-    });
-  }
+    // --- Poll player list ---
+    PollManager.startPolling(
+      interval: const Duration(seconds: 3),
+      task: () => ApiService.getLobbyPlayers(lobbyID),
+      onUpdate: (res) {
+        if (!mounted || res == null) return;
 
-  @override
-  void dispose() {
-    _pollTimer?.cancel();
-    super.dispose();
+        setState(() {
+          players = res;
+
+          // adding a loading screen
+          if(!hasInitialData && players.isNotEmpty) {
+            hasPlayersData = true;
+          }
+        });
+
+        // Auto-start if all ready
+        if (players.isNotEmpty && players.every((p) => p['ready'] == true)) {
+          NavigationService.navigate(
+            context,
+            ScreenType.game,
+            arguments: {'lobbyID': lobbyID},
+          );
+        }
+      },
+    );
   }
 
   Future<void> _updateSetting(String key, dynamic value) async {
     await ApiService.updateHostLobbySetting({key: value.toString()});
+    _startPlayerPolling(); // needed for now snce when i push the dropdown i stop the poll
   }
 
   void _showQrCode() {
@@ -81,7 +104,7 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
       context: context,
       builder: (_) => AlertDialog(
         title: const Text("QR-Code"),
-        content: PrettyQr(data: qrData.toString(), size: 200),
+        content: SvgPicture.string(qrData, width: 400,),
       ),
     );
   }
@@ -183,7 +206,7 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
                   NavigationService.navigate(
                     context,
                     ScreenType.game,
-                    arguments: {'code': lobbyID.toString()},
+                    arguments: {"lobbyID": lobbyID},
                   );
                 },
               ),
@@ -192,7 +215,7 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
         ),
         bottomNavigationBar: FooterNavigationBar(
           screenType: ScreenType.home,
-          onButtonPressed: (type) => handleFooterButton(context, type),
+          onButtonPressed: (type) => handleFooterButton(context, type)
         ),
       )
     );
