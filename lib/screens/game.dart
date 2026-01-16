@@ -170,12 +170,7 @@ class _GameScreenState extends State<GameScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          "Game Screen - Lobby $lobbyID",
-          style: AppTheme.lightTheme.textTheme.bodyLarge,
-        ),
-      ),
+      appBar: AppBar(title: Text("Digitale Wortkette zum Thema: subject",style: AppTheme.lightTheme.textTheme.bodyLarge,)),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -186,7 +181,7 @@ class _GameScreenState extends State<GameScreen>
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: turnOrder.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 10),
+                separatorBuilder: (_, _) => const SizedBox(width: 10),
                 itemBuilder: (_, index) {
                   final player = turnOrder[index];
                   final isActive = player == currentPlayer;
@@ -223,7 +218,7 @@ class _GameScreenState extends State<GameScreen>
                 children: [
                   AnimatedBuilder(
                     animation: _timerController,
-                    builder: (_, __) {
+                    builder: (_, _) {
                       final remaining =
                           (turnDurationSeconds *
                                   (1 - _timerController.value))
@@ -256,7 +251,7 @@ class _GameScreenState extends State<GameScreen>
                       const SizedBox(height: 6),
                       AnimatedBuilder(
                         animation: _timerController,
-                        builder: (_, __) {
+                        builder: (_, _) {
                           final remaining =
                               (turnDurationSeconds *
                                       (1 - _timerController.value))
