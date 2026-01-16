@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:pretty_qr_code/pretty_qr_code.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../services/api_service.dart';
 import '../../services/navigation.dart';
 import '../Widgets/dropdown_row.dart';
@@ -92,15 +92,9 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
     );
   }
 
-  /*@override
-  void dispose() {
-    _pollTimer?.cancel();
-    super.dispose();
-  }*/
-
   Future<void> _updateSetting(String key, dynamic value) async {
     await ApiService.updateHostLobbySetting({key: value.toString()});
-    _startPlayerPolling();
+    _startPlayerPolling(); // needed for now snce when i push the dropdown i stop the poll
   }
 
   void _showQrCode() {
@@ -110,7 +104,7 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
       context: context,
       builder: (_) => AlertDialog(
         title: const Text("QR-Code"),
-        content: PrettyQr(data: qrData.toString(), size: 200),
+        content: SvgPicture.string(qrData, width: 400,),
       ),
     );
   }

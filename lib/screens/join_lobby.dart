@@ -60,10 +60,6 @@ class _JoinLobbyPageState extends State<JoinLobbyPage> {
   void initState() {
     super.initState();
 
-    LobbySession.lobbyID = lobbyID;
-    LobbySession.userID = userID;
-    LobbySession.hostID = hostID;
-
     _myUsernameController = TextEditingController(text: username);
 
     _sendPlayerJoin();
@@ -123,6 +119,10 @@ class _JoinLobbyPageState extends State<JoinLobbyPage> {
 
     if (userID == 0 && res["userID"] != null) {
       setState(() => userID = res["userID"]);
+
+      LobbySession.lobbyID = lobbyID;
+      LobbySession.userID = userID;
+      LobbySession.hostID = hostID;
     }
   }
 
@@ -210,7 +210,6 @@ class _JoinLobbyPageState extends State<JoinLobbyPage> {
                                 username = v;
                               },
                             ),
-                            // need to edit the size here (i dont know if everything is alright as of now because of the broken backend)
                             trailing: SizedBox(
                               width: 65,
                               height: 50,
@@ -222,7 +221,7 @@ class _JoinLobbyPageState extends State<JoinLobbyPage> {
                                     setState(() {
                                       ready = v;
                                     });
-                                    _sendPlayerJoin();
+                                    _sendPlayerJoin(); // when the button is pressed it sends the dat to the backend
                                   },
                                 ),
                               ),
