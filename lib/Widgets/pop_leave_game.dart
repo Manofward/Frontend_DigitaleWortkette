@@ -79,7 +79,7 @@ class LeaveLobby {
     if (shouldLeave == true) {
       await ApiService.leaveGame(lobbyID, userID, hostID);
       LobbySession.clear();
-      
+
       return true;
     }
 

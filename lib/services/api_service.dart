@@ -3,9 +3,9 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class ApiService {
-  static const String baseUrl = 'http://172.16.34.18:5000/api/v1/dwk'; // for testing with more real endpoints
-  //static const String baseUrl = 'http://172.16.34.18:5000/api/v1/dwk'; // for the docker 
-  //static const String baseUrl = 'http://10.0.2.2:5000/api/v1/dwk'; // for local testing
+  //static const String baseUrl = 'http://172.16.34.13:5000/api/v1/dwk'; // for testing with more real endpoints
+  //static const String baseUrl = 'http://172.22.48.1:5000/api/v1/dwk'; // for the docker 
+  static const String baseUrl = 'http://10.0.2.2:5000/api/v1/dwk'; // for local testing 
 
   // --------------------------
   // Basic GET
@@ -115,6 +115,7 @@ class ApiService {
     return {
       "userID": res["userID"],
       "hostID": res["hostID"],
+      "auth_token": res["auth_token"],
     };
 
     //return res != null;
@@ -130,6 +131,8 @@ class ApiService {
       "chosenSubjectName": res["chosenSubject"],
       "chosenMaxPlayers": res["chosenMaxPlayers"],
       "chosenMaxGameLength": res["chosenMaxGameLength"],
+      // this parameter is used when the host started the game
+      //"started": res["gameStarted"],
     };
   }
 
@@ -144,6 +147,7 @@ class ApiService {
         "userID": p["userID"],
         "username": p["username"],
         "isPlayerReady": p["isPlayerReady"],
+        "auth_token": p["auth_token"],
       }),
     );
   }
@@ -163,8 +167,8 @@ class ApiService {
   // --------------------------
   // 5. Start Game
   // --------------------------
-  static Future<dynamic> startGame(String code, String firstLetter) async {
-    return {"started": true, "firstLetter": firstLetter, "code": code};
+  static Future<dynamic> startGame(int lobbyID, String firstLetter) async {
+    return {"started": true, "firstLetter": firstLetter, "lobbyID": lobbyID};
   }
 
   // --------------------------
@@ -177,6 +181,10 @@ class ApiService {
       "playerTurn": "Alice",
       "words": ["Ball", "Boot", "Baum"],
     };
+
+    /*
+    possible game getter
+    */
   }
 
   static Future<dynamic> postWord(String code, String wordInput) async {
