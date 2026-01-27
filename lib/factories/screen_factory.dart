@@ -18,25 +18,30 @@ enum ScreenType {
   scanQr,
 }
 
+// Factory class for creating screen widgets based on ScreenType
+// This centralizes screen creation logic and ensures consistency
+// across navigation throughout the app
 class ScreenFactory {
+  // Map of screen types to their builder functions
+  // Some screens require arguments (like lobby data), others are stateless
   static final Map<ScreenType, Widget Function(Map<String, dynamic>? args)> _screens = {
-    ScreenType.home: (_) => const DWKHomePage(),
-    ScreenType.manual: (_) => const ManualScreen(),
+    ScreenType.home: (_) => const DWKHomePage(), // Home screen, no arguments needed
+    ScreenType.manual: (_) => const ManualScreen(), // Manual/rules screen
 
-    /// ⛔ MUST BE REBUILT EVERY TIME
+    // These screens MUST be rebuilt each time because they contain dynamic state
+    // Reusing the same instance would cause state to persist incorrectly
     ScreenType.hostLobby: (args) => HostLobbyPage(data: args ?? {}),
-
-    /// ⛔ MUST BE REBUILT EVERY TIME
     ScreenType.joinLobby: (args) => JoinLobbyPage(lobbyData: args ?? {}),
+    ScreenType.game: (args) => GameScreen(lobbyData: args ?? {}), // Game state changes frequently
 
-    /// ⛔ Game must also rebuild (new state)
-    ScreenType.game: (args) => GameScreen(lobbyData: args ?? {}),
-
+    // Placeholder screens for features not yet implemented
     ScreenType.results: (_) => const _PlaceholderScreen(title: 'Results'),
     ScreenType.settings: (_) => const _PlaceholderScreen(title: 'Settings'),
     ScreenType.scanQr: (_) => const _PlaceholderScreen(title: 'QR Scanner'),
   };
 
+  // Create and return a screen widget based on the type
+  // Arguments are passed to screens that need them (like lobby data)
   static Widget createScreen(ScreenType type, {Map<String, dynamic>? arguments}) {
     final builder = _screens[type];
     if (builder != null) return builder(arguments);

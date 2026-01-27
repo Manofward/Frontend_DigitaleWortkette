@@ -1,13 +1,16 @@
 # TODOs:
 1. The Title: "Digitale Wortkette" and "offene Spiele" have to be edited so that maybe the big title is similar to the other
+   1. ### its something thats always to be done 
 2. linkings to the settings page and qr-Code scanner have to be made and the pages itself too
 3. automatic update has to be added everywhere
 4. need to add that when i go from host-lobby/join-lobby or any other page that polls data that it stops when leaving the corresponding page
+   1. ### should be on every finished site without bugs
 5. **AGBs** need to be added [Datenschutzerklärungsbeispiele]()
    1. the DSGVO site should be made before you can go on the homepage of the app in the main.dart file
 
 # Playthings needed for main programm:
 1. in the lobby, that you can only start the lobby when all players are ready needs to be added. **Before starting with the main game!!!**
+   1. **The Host Lobby should have a usage now that the lobby is started per setting a global variable. The comment needs to be removed for that.**
 2. Game Screen:
    1. In the Game Screen the max time will be counted from the host which will end the game then.
    2. in the Game Screen the word list will have the user_id so that the player list can be used to show the username of the one who said the word.
