@@ -202,10 +202,10 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
               ElevatedButton.icon(
                 icon: Icon(Icons.play_arrow, size: 22, color: AppTheme.lightTheme.colorScheme.secondary,),
                 label: Text("Spiel starten", style: AppTheme.lightTheme.textTheme.bodyLarge?.copyWith(color: AppTheme.lightTheme.colorScheme.secondary)),
-                onPressed: () {
-                  // this is the implementation of the gamescreen opening and
-                  //for the setting of the global variable of the game started
-                  //_updateSetting("gameStarted", true);
+                onPressed: () async {
+                  // Start the game via API
+                  await ApiService.startGame(lobbyID);
+                  // Navigate to game screen
                   NavigationService.navigate(
                     context,
                     ScreenType.game,

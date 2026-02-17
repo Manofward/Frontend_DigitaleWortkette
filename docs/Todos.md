@@ -14,8 +14,8 @@
 2. Game Screen:
    1. In the Game Screen the max time will be counted from the host which will end the game then.
    2. in the Game Screen the word list will have the user_id so that the player list can be used to show the username of the one who said the word.
-   3. In the Game Screen the player list will be scrambled and then given out as the list which player is the next one in the list.
-   4. For the Game Screen when the host starts the game he sends a post to the backend for starting the game and the backend sends it to the other players per post. (if possible)
+   3. In the Game Screen the player list will be scrambled and then given out as the list which player is the next one in the list. (This will be only a the list in which they joined with the host always being the first)
+   4. For the Game Screen when the host starts the game he sends a post to the backend for starting the game and the backend sends it to the other players per post. (A Status of the lobby will be set true and send alongside the get lobbydata function send and queried if its true then it will go to the game screen)
    5. For the Game Screen a player should only be able to input a word into the backend, when he is in the list for the player who is the next one to input.
    6. When the player inputs a word that already exists or has not the right letter in the beginning the backend will give back a message which should be shown on the screen.
 
