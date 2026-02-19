@@ -7,7 +7,6 @@ import '../factories/screen_factory.dart';
 import '../services/polling/poll_manager.dart';
 import '../Widgets/footer_nav_bar.dart';
 import '../utils/theme/app_theme.dart';
-import '../utils/get_username.dart';
 
 class GameScreen extends StatefulWidget {
   final Map<String, dynamic> lobbyData;
@@ -20,103 +19,111 @@ class GameScreen extends StatefulWidget {
 
 class _GameScreenState extends State<GameScreen> {
   late final int lobbyID;
-  String localUsername = getUsername();
   int? localUserID = LobbySession.userID;
 
   // Game state from backend
   String chosenSubject = "";
-  int timeRemaining = 0;
   String currentLetter = "";
   List<String> usedWords = [];
   Map<String, dynamic>? previousWord;
   List<dynamic> players = [];
-
-  // Polling handles
-  PollHandle? _gameSessionPollHandle;
-  PollHandle? _playersPollHandle;
+  bool isGameOver = false;
 
   // Local timer for countdown
+  int timeRemaining = 30;
   Timer? _countdownTimer;
-  bool isTimeUp = false;
 
   // UI state
   final TextEditingController _wordController = TextEditingController();
   bool isSubmitting = false;
 
-  String get currentPlayer => players.isNotEmpty ? players[0]['username'] ?? '' : '';
-  bool get isMyTurn => currentPlayer == localUsername && !isTimeUp;
+  int? get currentPlayerID => players.isNotEmpty ? players[0]['userID'] as int? : null;
+  bool get isMyTurn => players.isNotEmpty && localUserID != null && currentPlayerID == LobbySession.userID; // the players[0]['username'] has to be changed to the userid part
 
   @override
   void initState() {
     super.initState();
+
     lobbyID = widget.lobbyData["lobbyID"];
 
-    // Start polling for game session and players
     _startPolling();
   }
 
   void _startPolling() async {
     // Poll game session
-    _gameSessionPollHandle = await PollManager.startPolling(
+    PollManager.startPolling(
       interval: const Duration(seconds: 3),
       task: () => ApiService.getGameSessionData(lobbyID),
       onUpdate: (res) {
         if (!mounted || res == null) return;
-
         setState(() {
           chosenSubject = res["chosenSubject"] ?? "";
-          timeRemaining = res["time"] ?? 0;
           currentLetter = res["currentLetter"] ?? "";
           usedWords = List<String>.from(res["usedWords"] ?? []);
           previousWord = res["previousWord"];
-          isTimeUp = timeRemaining <= 0;
+          isGameOver = res["isGameOver"];
         });
-        _syncLocalTimer();
+
+        if (isGameOver) {
+          NavigationService.navigate(
+            context,
+            ScreenType.results,
+            arguments: {"lobbyID": lobbyID},
+          );
+        }
       },
     );
 
-    // Poll players for turn order
-    _playersPollHandle = await PollManager.startPolling(
+    // Poll players
+    PollManager.startPolling(
       interval: const Duration(seconds: 3),
       task: () => ApiService.getLobbyPlayers(lobbyID),
       onUpdate: (res) {
         if (!mounted || res == null) return;
 
+        final oldCurrentPlayerID = currentPlayerID;
+
         setState(() {
           players = res;
         });
+
+        // if turn changed
+        if (currentPlayerID != oldCurrentPlayerID) {
+          _countdownTimer?.cancel();
+          timeRemaining = 30;
+
+          if (isMyTurn) {
+            _startLocalTimer();
+          }
+        }
       },
     );
   }
 
-  void _syncLocalTimer() {
-    _countdownTimer?.cancel();
-    if (timeRemaining > 0) {
-      _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+  void _startLocalTimer() {
+    _countdownTimer?.cancel();      // prevent duplicate timers
+    timeRemaining = 30;
+
+    _countdownTimer = Timer.periodic(
+      const Duration(seconds: 1),
+      (timer) {
         if (!mounted) return;
 
-        setState(() {
-          if (timeRemaining > 0) {
+        if (timeRemaining > 0) {
+          setState(() {
             timeRemaining--;
-          } else {
-            isTimeUp = true;
-            timer.cancel();
-          }
-        });
-      });
-    }
+          });
+        } 
+        else {
+          timer.cancel();
+          _sendSkip(); // optional if you want auto skip
+        }
+      },
+    );
   }
 
-  @override
-  void dispose() {
-    // Stop all polling
-    _gameSessionPollHandle?.stop();
-    _playersPollHandle?.stop();
-    PollManager.cancelAll();
-
-    _countdownTimer?.cancel();
-    _wordController.dispose();
-    super.dispose();
+  Future<void> _sendSkip() async {
+    //await ApiService.postSkipTurn(lobbyID);
   }
 
   Future<void> _submitWord() async {
@@ -124,16 +131,14 @@ class _GameScreenState extends State<GameScreen> {
     if (word.isEmpty || !isMyTurn || isSubmitting) return;
 
     setState(() => isSubmitting = true);
-    final res = await ApiService.postGameSession(lobbyID, word);
+    final res = await ApiService.postGameSession(lobbyID, word, localUserID);
     setState(() => isSubmitting = false);
 
     if (res == null || res.isEmpty) {
-      // Word already exists or invalid
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Wort bereits verwendet oder ungültig!")),
       );
     } else {
-      // Valid word submitted; polling will update the UI
       _wordController.clear();
     }
   }
@@ -160,7 +165,7 @@ class _GameScreenState extends State<GameScreen> {
                 separatorBuilder: (_, _) => const SizedBox(width: 10),
                 itemBuilder: (_, index) {
                   final player = players[index];
-                  final isActive = index == 0; // First in list is current
+                  final isActive = index == 0;
                   return AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -187,21 +192,16 @@ class _GameScreenState extends State<GameScreen> {
                 alignment: Alignment.center,
                 children: [
                   CircularProgressIndicator(
-                    value: timeRemaining / 30, // Assuming 30s turns; adjust if needed
+                    value: timeRemaining / 30, // Assuming 30s turns
                     strokeWidth: 10,
                     backgroundColor: Colors.grey.shade300,
-                    valueColor: AlwaysStoppedAnimation(isTimeUp ? Colors.red : Colors.green),
                   ),
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        isTimeUp ? "Zeit abgelaufen!" : currentPlayer,
-                        style: AppTheme.lightTheme.textTheme.bodyLarge,
-                      ),
                       const SizedBox(height: 6),
                       Text(
-                        isTimeUp ? "0 s" : "$timeRemaining s",
+                        timeRemaining <= 0 ? "Übersprungen" : "$timeRemaining s bis Überspringen",
                         style: AppTheme.lightTheme.textTheme.bodyMedium,
                       ),
                     ],
@@ -229,9 +229,7 @@ class _GameScreenState extends State<GameScreen> {
               decoration: InputDecoration(
                 labelText: isMyTurn
                     ? "Gib dein Wort ein"
-                    : isTimeUp
-                        ? "Zeit abgelaufen"
-                        : "Warte auf $currentPlayer",
+                    : "Warte auf $currentPlayerID",
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.send),
@@ -254,10 +252,10 @@ class _GameScreenState extends State<GameScreen> {
             // Used Words List
             Expanded(
               child: ListView.builder(
-                reverse: true, // Most recent first
+                reverse: true,
                 itemCount: usedWords.length,
                 itemBuilder: (context, index) {
-                  final word = usedWords[usedWords.length - 1 - index]; // Reverse for display
+                  final word = usedWords[usedWords.length - 1 - index];
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 6),
                     child: Text(
