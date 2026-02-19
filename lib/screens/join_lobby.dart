@@ -63,8 +63,12 @@ class _JoinLobbyPageState extends State<JoinLobbyPage> {
     _myUsernameController = TextEditingController(text: username);
 
     _sendPlayerJoin();
+    _startSettingsPolling();
+    _startPlayerPolling();
+  }
 
-    // --- Poll lobby settings ---
+  // --- Poll lobby settings ---
+  void _startSettingsPolling() {
     PollManager.startPolling(
       interval: const Duration(seconds: 3),
       task: () => ApiService.getLobby(lobbyID),
@@ -81,10 +85,21 @@ class _JoinLobbyPageState extends State<JoinLobbyPage> {
             hasLobbyData = true;
           }
         });
+
+        // navigate to the game site if game begins
+        if (res["hasGameStarted"] == "true") {
+          NavigationService.navigate(
+            context,
+            ScreenType.game,
+            arguments: {'lobbyID': lobbyID},
+          );
+        }
       },
     );
+  }
 
-    // --- Poll player list ---
+  // --- Poll player list ---
+  void _startPlayerPolling() {
     PollManager.startPolling(
       interval: const Duration(seconds: 3),
       task: () => ApiService.getLobbyPlayers(lobbyID),
@@ -99,15 +114,6 @@ class _JoinLobbyPageState extends State<JoinLobbyPage> {
             hasPlayersData = true;
           }
         });
-
-        // Auto-start if all ready
-        if (players.isNotEmpty && players.every((p) => p['ready'] == true)) {
-          NavigationService.navigate(
-            context,
-            ScreenType.game,
-            arguments: {'lobbyID': lobbyID},
-          );
-        }
       },
     );
   }

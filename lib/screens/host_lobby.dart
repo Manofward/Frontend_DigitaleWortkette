@@ -79,15 +79,6 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
             hasPlayersData = true;
           }
         });
-
-        // Auto-start if all ready
-        if (players.isNotEmpty && players.every((p) => p['ready'] == true)) {
-          NavigationService.navigate(
-            context,
-            ScreenType.game,
-            arguments: {'lobbyID': lobbyID},
-          );
-        }
       },
     );
   }
@@ -203,14 +194,20 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
                 icon: Icon(Icons.play_arrow, size: 22, color: AppTheme.lightTheme.colorScheme.secondary,),
                 label: Text("Spiel starten", style: AppTheme.lightTheme.textTheme.bodyLarge?.copyWith(color: AppTheme.lightTheme.colorScheme.secondary)),
                 onPressed: () async {
-                  // Start the game via API
-                  await ApiService.startGame(lobbyID);
-                  // Navigate to game screen
-                  NavigationService.navigate(
-                    context,
-                    ScreenType.game,
-                    arguments: {"lobbyID": lobbyID},
-                  );
+                  // Navigate to game screen only if all Players are ready
+                  if (players.isNotEmpty && players.every((p) => p['isPlayerReady'] == "true")) {
+                    // Start the game via API
+                    _updateSetting("hasGameStarted", true);
+                    
+                    NavigationService.navigate(
+                      context,
+                      ScreenType.game,
+                      arguments: {"lobbyID": lobbyID},
+                    );
+                  }
+                  else {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Nicht alle Spieler sind bereit')));
+                  }
                 },
               ),
             ],

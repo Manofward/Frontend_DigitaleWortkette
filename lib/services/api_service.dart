@@ -5,7 +5,7 @@ import 'dart:io';
 import 'dart:async';
 
 class ApiService {
-  static const String baseUrl = 'http://172.16.34.14:5000/api/v1/dwk'; // for testing with more real endpoints
+  static const String baseUrl = 'http://172.16.34.18:5000/api/v1/dwk'; // for testing with more real endpoints
   //static const String baseUrl = 'http://172.22.48.1:5000/api/v1/dwk'; // for the docker 
   //static const String baseUrl = 'http://10.0.2.2:5000/api/v1/dwk'; // for local testing 
 
@@ -14,13 +14,7 @@ class ApiService {
   // --------------------------
   static Future<dynamic> get(String endpoint) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/$endpoint')).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          debugPrint("Timeout error: Request timed out after 10 seconds");
-          return http.Response('{"error": "timeout"}', 408);
-        },
-      );
+      final response = await http.get(Uri.parse('$baseUrl/$endpoint'));
 
       debugPrint("GET request to $endpoint - Status: ${response.statusCode}");
 
@@ -35,11 +29,6 @@ class ApiService {
 
       if (response.statusCode == 204) {
         return [];
-      }
-
-      if (response.statusCode == 408) {
-        debugPrint("GET timed out");
-        return null;
       }
 
       debugPrint("GET failed with status: ${response.statusCode}");
@@ -65,12 +54,6 @@ class ApiService {
           Uri.parse('$baseUrl/$endpoint'),
           body: data,
           headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        ).timeout(
-          const Duration(seconds: 15),
-          onTimeout: () {
-            debugPrint("Timeout error: POST request timed out after 15 seconds");
-            return http.Response('{"error": "timeout"}', 408);
-          },
         );
 
         debugPrint("POST request to $endpoint - Status: ${response.statusCode}");
@@ -188,8 +171,7 @@ class ApiService {
       "chosenSubjectName": res["chosenSubject"],
       "chosenMaxPlayers": res["chosenMaxPlayers"],
       "chosenMaxGameLength": res["chosenMaxGameLength"],
-      // this parameter is used when the host started the game
-      //"started": res["gameStarted"],
+      "hasGameStarted": res["hasGameStarted"],
     };
   }
 
@@ -221,52 +203,32 @@ class ApiService {
     return res != null;
   }
 
-  // Start the game for a lobby
-  static Future<bool> startGame(int lobbyID) async {
-    final res = await post("game/$lobbyID/start", {});
-  
-    return res != null;
-  }
 
   // Get the current game session data (returns game state)
   static Future<Map<String, dynamic>> getGameSessionData(int lobbyID) async {
     final res = await get("game/$lobbyID/session");
 
-    if (res == null || res is! Map<String, dynamic>) {
+    debugPrint("Test");
+    if (res == null) {
       return {};
     }
 
     return {
+      "gameID": res["gameID"] ?? "",
       "chosenSubject": res["chosenSubject"] ?? "",
       "currentLetter": res["currentLetter"] ?? "",
       "usedWords": res["usedWords"] ?? [],
       "previousWord": res["previousWord"] ?? null,
+      "isGameOver": res["isTimeUp"] ?? "",
     };
   }
 
-  // Get the list of players in the game session
-  static Future<List<Map<String, dynamic>>> getGameSessionPlayers(int lobbyID) async {
-    final res = await get("game/$lobbyID/players");
-
-    if (res == null || res is! List) {
-      return [];
-    }
-
-    return List<Map<String, dynamic>>.from(
-      res.map((p) => {
-        "userID": p["userID"],
-        "username": p["username"],
-        "isPlayerReady": p["isPlayerReady"],
-        "auth_token": p["auth_token"],
-      }),
-    );
-  }
-
   // Submit a word to the game session
-  static Future<Map<String, dynamic>?> postGameSession(int lobbyID, String word) async {
+  static Future<Map<String, dynamic>?> postGameSession(int lobbyID, String word, int? userID) async {
     try {
       final res = await post("game/$lobbyID/session", {
         'wordInput': word.toString(),
+        'userID': userID.toString(),
         });
 
       // post() returns Map<String, dynamic> or null, not http.Response
