@@ -26,7 +26,7 @@ class _GameScreenState extends State<GameScreen> {
   String currentLetter = "";
   List<String> usedWords = [];
   Map<String, dynamic>? previousWord;
-  List<dynamic> players = [];
+  List<dynamic> turnOrder = [];
   bool isGameOver = false;
 
   // Local timer for countdown
@@ -37,8 +37,8 @@ class _GameScreenState extends State<GameScreen> {
   final TextEditingController _wordController = TextEditingController();
   bool isSubmitting = false;
 
-  int? get currentPlayerID => players.isNotEmpty ? players[0]['userID'] as int? : null;
-  bool get isMyTurn => players.isNotEmpty && localUserID != null && currentPlayerID == LobbySession.userID; // the players[0]['username'] has to be changed to the userid part
+  int? get currentPlayerID => turnOrder.isNotEmpty ? turnOrder[0]['userID'] as int? : null;
+  bool get isMyTurn => turnOrder.isNotEmpty && localUserID != null && currentPlayerID == LobbySession.userID;
 
   @override
   void initState() {
@@ -57,6 +57,7 @@ class _GameScreenState extends State<GameScreen> {
       onUpdate: (res) {
         if (!mounted || res == null) return;
         setState(() {
+          turnOrder = res["turnOrder"] ?? [];
           chosenSubject = res["chosenSubject"] ?? "";
           currentLetter = res["currentLetter"] ?? "";
           usedWords = List<String>.from(res["usedWords"] ?? []);
@@ -64,37 +65,19 @@ class _GameScreenState extends State<GameScreen> {
           isGameOver = res["isGameOver"];
         });
 
+        if (isMyTurn) {
+          _startLocalTimer();
+        }
+        else {
+          _countdownTimer?.cancel();
+        }
+
         if (isGameOver) {
           NavigationService.navigate(
             context,
             ScreenType.results,
             arguments: {"lobbyID": lobbyID},
           );
-        }
-      },
-    );
-
-    // Poll players
-    PollManager.startPolling(
-      interval: const Duration(seconds: 3),
-      task: () => ApiService.getLobbyPlayers(lobbyID),
-      onUpdate: (res) {
-        if (!mounted || res == null) return;
-
-        final oldCurrentPlayerID = currentPlayerID;
-
-        setState(() {
-          players = res;
-        });
-
-        // if turn changed
-        if (currentPlayerID != oldCurrentPlayerID) {
-          _countdownTimer?.cancel();
-          timeRemaining = 30;
-
-          if (isMyTurn) {
-            _startLocalTimer();
-          }
         }
       },
     );
@@ -124,6 +107,7 @@ class _GameScreenState extends State<GameScreen> {
 
   Future<void> _sendSkip() async {
     //await ApiService.postSkipTurn(lobbyID);
+    debugPrint("Skipped player ${turnOrder[0]['username']}");
   }
 
   Future<void> _submitWord() async {
@@ -161,10 +145,10 @@ class _GameScreenState extends State<GameScreen> {
               height: 40,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
-                itemCount: players.length,
+                itemCount: turnOrder.length,
                 separatorBuilder: (_, _) => const SizedBox(width: 10),
                 itemBuilder: (_, index) {
-                  final player = players[index];
+                  final player = turnOrder[index];
                   final isActive = index == 0;
                   return AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
@@ -229,7 +213,7 @@ class _GameScreenState extends State<GameScreen> {
               decoration: InputDecoration(
                 labelText: isMyTurn
                     ? "Gib dein Wort ein"
-                    : "Warte auf $currentPlayerID",
+                    : "Warte auf ${turnOrder.isNotEmpty ? turnOrder[0]['username'] : 'Spieler'}",
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.send),
