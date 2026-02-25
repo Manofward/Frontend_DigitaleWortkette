@@ -31,7 +31,9 @@ class _GameScreenState extends State<GameScreen> {
 
   // Local timer for countdown
   int timeRemaining = 30;
+  bool skippedTurn = true;
   Timer? _countdownTimer;
+  
 
   // UI state
   final TextEditingController _wordController = TextEditingController();
@@ -68,9 +70,6 @@ class _GameScreenState extends State<GameScreen> {
         if (isMyTurn) {
           _startLocalTimer();
         }
-        else {
-          _countdownTimer?.cancel();
-        }
 
         if (isGameOver) {
           NavigationService.navigate(
@@ -85,8 +84,12 @@ class _GameScreenState extends State<GameScreen> {
 
   void _startLocalTimer() {
     _countdownTimer?.cancel();      // prevent duplicate timers
-    timeRemaining = 30;
 
+    if (skippedTurn) {
+      timeRemaining = 30;
+      skippedTurn = false;
+    }
+    
     _countdownTimer = Timer.periodic(
       const Duration(seconds: 1),
       (timer) {
@@ -99,6 +102,7 @@ class _GameScreenState extends State<GameScreen> {
         } 
         else {
           timer.cancel();
+          timeRemaining = 0;
           _sendSkip(); // optional if you want auto skip
         }
       },
@@ -107,6 +111,7 @@ class _GameScreenState extends State<GameScreen> {
 
   Future<void> _sendSkip() async {
     //await ApiService.postSkipTurn(lobbyID);
+    skippedTurn = true;
     debugPrint("Skipped player ${turnOrder[0]['username']}");
   }
 
@@ -124,133 +129,142 @@ class _GameScreenState extends State<GameScreen> {
       );
     } else {
       _wordController.clear();
+
+      if(_countdownTimer?.isActive == true) {
+        _countdownTimer?.cancel();
+        timeRemaining = 0;
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: Text(
           "Digitale Wortkette zum Thema: $chosenSubject",
           style: AppTheme.lightTheme.textTheme.bodyLarge,
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            // Turn Order
-            SizedBox(
-              height: 40,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: turnOrder.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 10),
-                itemBuilder: (_, index) {
-                  final player = turnOrder[index];
-                  final isActive = index == 0;
-                  return AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: isActive ? Theme.of(context).colorScheme.primary : Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      player['username'] ?? '',
-                      style: TextStyle(color: isActive ? Colors.white : Colors.black),
-                    ),
-                  );
-                },
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Timer + Current Player
-            SizedBox(
-              width: 160,
-              height: 160,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  CircularProgressIndicator(
-                    value: timeRemaining / 30, // Assuming 30s turns
-                    strokeWidth: 10,
-                    backgroundColor: Colors.grey.shade300,
-                  ),
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const SizedBox(height: 6),
-                      Text(
-                        timeRemaining <= 0 ? "Übersprungen" : "$timeRemaining s bis Überspringen",
-                        style: AppTheme.lightTheme.textTheme.bodyMedium,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Turn Order
+              SizedBox(
+                height: 40,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: turnOrder.length,
+                  separatorBuilder: (_, _) => const SizedBox(width: 10),
+                  itemBuilder: (_, index) {
+                    final player = turnOrder[index];
+                    final isActive = index == 0;
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isActive ? Theme.of(context).colorScheme.primary : Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Current Letter Hint
-            if (currentLetter.isNotEmpty)
-              Text(
-                "Nächstes Wort beginnt mit: $currentLetter",
-                style: AppTheme.lightTheme.textTheme.bodyLarge?.copyWith(color: Colors.blue),
-              ),
-
-            const SizedBox(height: 20),
-
-            // Word Input
-            TextField(
-              controller: _wordController,
-              enabled: isMyTurn && !isSubmitting,
-              onSubmitted: (_) => _submitWord(),
-              decoration: InputDecoration(
-                labelText: isMyTurn
-                    ? "Gib dein Wort ein"
-                    : "Warte auf ${turnOrder.isNotEmpty ? turnOrder[0]['username'] : 'Spieler'}",
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.send),
-                  onPressed: (isMyTurn && !isSubmitting) ? _submitWord : null,
+                      child: Text(
+                        player['username'] ?? '',
+                        style: TextStyle(color: isActive ? Colors.white : Colors.black),
+                      ),
+                    );
+                  },
                 ),
               ),
-            ),
 
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-            // Previous Word
-            if (previousWord != null)
-              Text(
-                "Letztes Wort: ${previousWord!['wordUsed']} von ${previousWord!['username']}",
-                style: AppTheme.lightTheme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
-              ),
-
-            const SizedBox(height: 20),
-
-            // Used Words List
-            Expanded(
-              child: ListView.builder(
-                reverse: true,
-                itemCount: usedWords.length,
-                itemBuilder: (context, index) {
-                  final word = usedWords[usedWords.length - 1 - index];
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 6),
-                    child: Text(
-                      word,
-                      style: AppTheme.lightTheme.textTheme.bodyMedium,
+              // Timer + Current Player
+              SizedBox(
+                width: 160, // 160 width before change
+                height: 160, // 160 height before change
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    CircularProgressIndicator(
+                      value: timeRemaining / 30, // Assuming 30s turns
+                      strokeWidth: 10,
+                      backgroundColor: Colors.grey.shade300,
                     ),
-                  );
-                },
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const SizedBox(height: 30),
+                        Text(
+                          timeRemaining <= 0 ? "Übersprungen" : "$timeRemaining s bis Überspringen",
+                          style: AppTheme.lightTheme.textTheme.bodyMedium,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+
+              const SizedBox(height: 20),
+
+              // Current Letter Hint
+              if (currentLetter.isNotEmpty)
+                Text(
+                  "Nächstes Wort beginnt mit: $currentLetter",
+                  style: AppTheme.lightTheme.textTheme.bodyLarge?.copyWith(color: Colors.blue),
+                ),
+
+              const SizedBox(height: 20),
+
+              // Word Input
+              TextField(
+                controller: _wordController,
+                enabled: isMyTurn && !isSubmitting,
+                onSubmitted: (_) => _submitWord(),
+                decoration: InputDecoration(
+                  labelText: isMyTurn
+                      ? "Gib dein Wort ein"
+                      : "Warte auf ${turnOrder.isNotEmpty ? turnOrder[0]['username'] : 'Spieler'}",
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.send),
+                    onPressed: (isMyTurn && !isSubmitting) ? _submitWord : null,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // Previous Word
+              if (previousWord != null)
+                Text(
+                  "Letztes Wort: ${previousWord!['wordUsed']} von ${previousWord!['username']}",
+                  style: AppTheme.lightTheme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+                ),
+
+              const SizedBox(height: 20),
+
+              // Used Words List
+              Flexible(
+                child: ListView.builder(
+                  reverse: true,
+                  itemCount: usedWords.length,
+                  itemBuilder: (context, index) {
+                    final word = usedWords[usedWords.length - 1 - index];
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Text(
+                        word,
+                        style: AppTheme.lightTheme.textTheme.bodyMedium,
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: FooterNavigationBar(
