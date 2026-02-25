@@ -85,7 +85,9 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
 
   Future<void> _updateSetting(String key, dynamic value) async {
     await ApiService.updateHostLobbySetting({key: value.toString()});
-    _startPlayerPolling(); // needed for now snce when i push the dropdown i stop the poll
+    if (key != "hasGameStarted" ){
+      _startPlayerPolling(); // needed for now since when i push the dropdown i stop the poll
+    }
   }
 
   void _showQrCode() {
