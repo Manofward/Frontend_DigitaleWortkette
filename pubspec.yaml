@@ -16,6 +16,7 @@ dependencies:
   loading_animation_widget: 
   dart_jsonwebtoken: ^3.3.1
   shared_preferences: ^2.2.2
+  square_progress_indicator: ^0.0.8
 
 dev_dependencies:
   flutter_test:
