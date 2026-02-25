@@ -173,10 +173,8 @@ class _GameScreenState extends State<GameScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        title: Text(
-          "Digitale Wortkette zum Thema: $chosenSubject",
-          style: AppTheme.lightTheme.textTheme.bodyLarge,
-        ),
+        title: Text("Digitale Wortkette zum Thema: $chosenSubject",
+          style: AppTheme.lightTheme.textTheme.bodyLarge),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -198,12 +196,12 @@ class _GameScreenState extends State<GameScreen> {
                       duration: const Duration(milliseconds: 300),
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                       decoration: BoxDecoration(
-                        color: isActive ? Theme.of(context).colorScheme.primary : Colors.grey.shade300,
+                        color: isActive ? AppTheme.lightTheme.colorScheme.secondary : Colors.grey.shade300,//Theme.of(context).colorScheme.primary : Colors.grey.shade300, 
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
                         player['username'] ?? '',
-                        style: TextStyle(color: isActive ? Colors.white : Colors.black),
+                        style: TextStyle(color: isActive ? Colors.grey.shade50 : Colors.black),
                       ),
                     );
                   },
@@ -220,9 +218,10 @@ class _GameScreenState extends State<GameScreen> {
                   value: timeRemaining / 30, // Assuming 30s turns
                   strokeWidth: 10,
                   emptyStrokeColor: Colors.grey.shade300,
+                  color: AppTheme.lightTheme.colorScheme.secondary,
                   child: Center(
                     child: Text(
-                      timeRemaining <= 0 ? "Übersprungen" : "$timeRemaining s bis Überspringen",
+                      timeRemaining <= 0 ? "Übersprungen" : "${timeRemaining}s bis Überspringen",
                       textAlign: TextAlign.center,
                       style: AppTheme.lightTheme.textTheme.bodyMedium,
                     ),
@@ -234,9 +233,17 @@ class _GameScreenState extends State<GameScreen> {
 
               // Current Letter Hint
               if (currentLetter.isNotEmpty)
-                Text(
-                  "Nächstes Wort beginnt mit: $currentLetter",
-                  style: AppTheme.lightTheme.textTheme.bodyLarge?.copyWith(color: Colors.blue),
+                RichText(
+                  text: TextSpan(
+                    style: AppTheme.lightTheme.textTheme.bodyLarge,
+                    children: [
+                      const TextSpan(text: "Nächstes Wort beginnt mit: "),
+                      TextSpan(
+                        text: currentLetter,
+                        style: TextStyle(color: AppTheme.lightTheme.colorScheme.primary),
+                      ),
+                    ],
+                  ),
                 ),
 
               const SizedBox(height: 20),
@@ -262,9 +269,22 @@ class _GameScreenState extends State<GameScreen> {
 
               // Previous Word
               if (previousWord != null)
-                Text(
-                  "Letztes Wort: ${previousWord!['wordUsed']} von ${previousWord!['username']}",
-                  style: AppTheme.lightTheme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+                RichText(
+                  text: TextSpan(
+                    style: AppTheme.lightTheme.textTheme.bodyLarge,
+                    children: [
+                      const TextSpan(text: "Letztes Wort: "),
+                      TextSpan(
+                        text: previousWord!['wordUsed'],
+                        style: TextStyle(color: AppTheme.lightTheme.colorScheme.secondary),
+                      ),
+                      const TextSpan(text: " von "),
+                      TextSpan(
+                        text: previousWord!['username'],
+                        style: TextStyle(color: AppTheme.lightTheme.colorScheme.primary),
+                      ),
+                    ],
+                  ),
                 ),
 
               const SizedBox(height: 20),
@@ -280,9 +300,18 @@ class _GameScreenState extends State<GameScreen> {
                     final word = usedWords[usedWords.length - 1 - index];
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 6),
-                      child: Text(
-                        "${word['word']}, ${word['username']}",
-                        style: AppTheme.lightTheme.textTheme.bodyMedium,
+                      child: Row(
+                        children: [
+                          Text(
+                            word['word'],
+                            style: AppTheme.lightTheme.textTheme.bodyLarge,
+                          ),
+                          Spacer(), // pushes username to the right
+                          Text(
+                            word['username'],
+                            style: AppTheme.lightTheme.textTheme.bodyLarge,
+                          ),
+                        ],
                       ),
                     );
                   },
