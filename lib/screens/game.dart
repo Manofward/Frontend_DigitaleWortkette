@@ -1,6 +1,7 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:square_progress_indicator/square_progress_indicator.dart';
 import '../services/api_service.dart';
 import '../services/navigation.dart';
 import '../factories/screen_factory.dart';
@@ -40,7 +41,8 @@ class _GameScreenState extends State<GameScreen> {
   bool isSubmitting = false;
 
   int? get currentPlayerID => turnOrder.isNotEmpty ? turnOrder[0]['userID'] as int? : null;
-  bool get isMyTurn => turnOrder.isNotEmpty && localUserID != null && currentPlayerID == LobbySession.userID;
+  bool get isMyTurn => turnOrder.isNotEmpty && localUserID != null && currentPlayerID == localUserID;
+  ValueNotifier<bool> isMyTurnNotifier = ValueNotifier(false); // Notifier for Notifying the timer to do something
 
   @override
   void initState() {
@@ -48,7 +50,25 @@ class _GameScreenState extends State<GameScreen> {
 
     lobbyID = widget.lobbyData["lobbyID"];
 
+    // Listen for turn changes
+    isMyTurnNotifier.addListener(() {
+      if (isMyTurnNotifier.value) {
+        _startLocalTimer();
+      } else {
+        // My turn ended
+        _countdownTimer?.cancel();
+        timeRemaining = 30;
+      }
+    });
+
     _startPolling();
+  }
+
+  @override
+   void dispose() {
+    _countdownTimer?.cancel();
+    _wordController.dispose();
+    super.dispose();
   }
 
   void _startPolling() async {
@@ -67,8 +87,8 @@ class _GameScreenState extends State<GameScreen> {
           isGameOver = res["isGameOver"];
         });
 
-        if (isMyTurn) {
-          _startLocalTimer();
+        if (isMyTurn != isMyTurnNotifier.value) {
+          isMyTurnNotifier.value = isMyTurn;
         }
 
         if (isGameOver) {
@@ -113,6 +133,10 @@ class _GameScreenState extends State<GameScreen> {
     //await ApiService.postSkipTurn(lobbyID);
     skippedTurn = true;
     debugPrint("Skipped player ${turnOrder[0]['username']}");
+
+    if (isMyTurnNotifier.value) {
+      _startLocalTimer();
+    }
   }
 
   Future<void> _submitWord() async {
@@ -130,9 +154,15 @@ class _GameScreenState extends State<GameScreen> {
     } else {
       _wordController.clear();
 
+      // query if the user is still the first in the turnOrder reset the timer
       if(_countdownTimer?.isActive == true) {
         _countdownTimer?.cancel();
         timeRemaining = 0;
+
+        if (isMyTurnNotifier.value) {
+          skippedTurn == true;
+          _startLocalTimer();
+        }
       }
     }
   }
@@ -140,7 +170,7 @@ class _GameScreenState extends State<GameScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: Text(
           "Digitale Wortkette zum Thema: $chosenSubject",
@@ -148,7 +178,7 @@ class _GameScreenState extends State<GameScreen> {
         ),
       ),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -183,28 +213,20 @@ class _GameScreenState extends State<GameScreen> {
 
               // Timer + Current Player
               SizedBox(
-                width: 160, // 160 width before change
-                height: 160, // 160 height before change
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    CircularProgressIndicator(
-                      value: timeRemaining / 30, // Assuming 30s turns
-                      strokeWidth: 10,
-                      backgroundColor: Colors.grey.shade300,
+                width: 160,
+                height: 60,
+                child: SquareProgressIndicator(
+                  value: timeRemaining / 30, // Assuming 30s turns
+                  strokeWidth: 10,
+                  emptyStrokeColor: Colors.grey.shade300,
+                  child: Center(
+                    child: Text(
+                      timeRemaining <= 0 ? "Übersprungen" : "$timeRemaining s bis Überspringen",
+                      textAlign: TextAlign.center,
+                      style: AppTheme.lightTheme.textTheme.bodyMedium,
                     ),
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const SizedBox(height: 30),
-                        Text(
-                          timeRemaining <= 0 ? "Übersprungen" : "$timeRemaining s bis Überspringen",
-                          style: AppTheme.lightTheme.textTheme.bodyMedium,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                  ),
+                ),    
               ),
 
               const SizedBox(height: 20),
@@ -247,7 +269,8 @@ class _GameScreenState extends State<GameScreen> {
               const SizedBox(height: 20),
 
               // Used Words List
-              Flexible(
+              SizedBox(
+                height: 300,
                 child: ListView.builder(
                   reverse: true,
                   itemCount: usedWords.length,
