@@ -208,7 +208,6 @@ class ApiService {
   static Future<Map<String, dynamic>> getGameSessionData(int lobbyID) async {
     final res = await get("game/$lobbyID/session");
 
-    debugPrint("Test");
     if (res == null) {
       return {};
     }
@@ -240,6 +239,10 @@ class ApiService {
       debugPrint('Error submitting word: $e');
     }
     return null;
+  }
+
+  static Future<void> getSkipTurn(int lobbyID) async {
+    await get("game/$lobbyID/skip");
   }
 
   // --------------------------

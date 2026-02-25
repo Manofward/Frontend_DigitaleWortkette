@@ -25,7 +25,7 @@ class _GameScreenState extends State<GameScreen> {
   // Game state from backend
   String chosenSubject = "";
   String currentLetter = "";
-  List<String> usedWords = [];
+  List<dynamic> usedWords = [];
   Map<String, dynamic>? previousWord;
   List<dynamic> turnOrder = [];
   bool isGameOver = false;
@@ -82,7 +82,7 @@ class _GameScreenState extends State<GameScreen> {
           turnOrder = res["turnOrder"] ?? [];
           chosenSubject = res["chosenSubject"] ?? "";
           currentLetter = res["currentLetter"] ?? "";
-          usedWords = List<String>.from(res["usedWords"] ?? []);
+          usedWords = res["usedWords"] ?? [];
           previousWord = res["previousWord"];
           isGameOver = res["isGameOver"];
         });
@@ -130,8 +130,9 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Future<void> _sendSkip() async {
-    //await ApiService.postSkipTurn(lobbyID);
     skippedTurn = true;
+    await ApiService.getSkipTurn(lobbyID);
+    
     debugPrint("Skipped player ${turnOrder[0]['username']}");
 
     if (isMyTurnNotifier.value) {
@@ -269,6 +270,7 @@ class _GameScreenState extends State<GameScreen> {
               const SizedBox(height: 20),
 
               // Used Words List
+              // TODO: here needs the size and the layout to be tweaked
               SizedBox(
                 height: 300,
                 child: ListView.builder(
@@ -279,7 +281,7 @@ class _GameScreenState extends State<GameScreen> {
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 6),
                       child: Text(
-                        word,
+                        "${word['word']}, ${word['username']}",
                         style: AppTheme.lightTheme.textTheme.bodyMedium,
                       ),
                     );
