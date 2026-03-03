@@ -114,6 +114,10 @@ class _GameScreenState extends State<GameScreen> {
       const Duration(seconds: 1),
       (timer) {
         if (!mounted) return;
+        if(isGameOver)
+        {
+          timer.cancel();
+        }
 
         if (timeRemaining > 0) {
           setState(() {
@@ -158,10 +162,10 @@ class _GameScreenState extends State<GameScreen> {
       // query if the user is still the first in the turnOrder reset the timer
       if(_countdownTimer?.isActive == true) {
         _countdownTimer?.cancel();
-        timeRemaining = 0;
+        timeRemaining = 30;
 
         if (isMyTurnNotifier.value) {
-          skippedTurn == true;
+          skippedTurn = true;
           _startLocalTimer();
         }
       }
@@ -173,7 +177,7 @@ class _GameScreenState extends State<GameScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        title: Text("Digitale Wortkette zum Thema: $chosenSubject",
+        title: Text("Wortkette zum Thema: $chosenSubject",
           style: AppTheme.lightTheme.textTheme.bodyLarge),
       ),
       body: SafeArea(
@@ -240,7 +244,7 @@ class _GameScreenState extends State<GameScreen> {
                       const TextSpan(text: "Nächstes Wort beginnt mit: "),
                       TextSpan(
                         text: currentLetter,
-                        style: TextStyle(color: AppTheme.lightTheme.colorScheme.primary),
+                        style: TextStyle(color: AppTheme.lightTheme.colorScheme.secondary),
                       ),
                     ],
                   ),
@@ -290,7 +294,6 @@ class _GameScreenState extends State<GameScreen> {
               const SizedBox(height: 20),
 
               // Used Words List
-              // TODO: here needs the size and the layout to be tweaked
               SizedBox(
                 height: 300,
                 child: ListView.builder(
@@ -304,7 +307,9 @@ class _GameScreenState extends State<GameScreen> {
                         children: [
                           Text(
                             word['word'],
-                            style: AppTheme.lightTheme.textTheme.bodyLarge,
+                            style: AppTheme.lightTheme.textTheme.bodyLarge!.copyWith(
+                              color: word['word'].toLowerCase().startsWith(currentLetter.toLowerCase()) ? AppTheme.lightTheme.colorScheme.secondary : Colors.black,
+                            ),
                           ),
                           Spacer(), // pushes username to the right
                           Text(

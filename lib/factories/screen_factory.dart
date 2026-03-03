@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_frontend/screens/settings.dart';
 
 // Screens
 import '../screens/home.dart';
@@ -36,7 +37,7 @@ class ScreenFactory {
 
     // Placeholder screens for features not yet implemented
     ScreenType.results: (_) => const _PlaceholderScreen(title: 'Results'),
-    ScreenType.settings: (_) => const _PlaceholderScreen(title: 'Settings'),
+    ScreenType.settings: (_) => const SettingsPage(),
     ScreenType.scanQr: (_) => const _PlaceholderScreen(title: 'QR Scanner'),
   };
 
