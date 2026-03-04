@@ -1,6 +1,7 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:speech_to_text_field/speech_to_text_field.dart';
 import 'package:square_progress_indicator/square_progress_indicator.dart';
 import '../services/api_service.dart';
 import '../services/navigation.dart';
@@ -251,12 +252,15 @@ class _GameScreenState extends State<GameScreen> {
                 ),
 
               const SizedBox(height: 20),
-
-              // Word Input
-              TextField(
+              
+              SpeechToTextField(
                 controller: _wordController,
                 enabled: isMyTurn && !isSubmitting,
-                onSubmitted: (_) => _submitWord(),
+                micIcon: Icons.mic_off_outlined,
+                listeningIcon: Icons.mic_outlined,
+                micIconColor: Colors.black,
+                listeningIconColor: AppTheme.lightTheme.colorScheme.secondary,
+                iconPosition: IconPosition.prefix,
                 decoration: InputDecoration(
                   labelText: isMyTurn
                       ? "Gib dein Wort ein"
@@ -264,9 +268,10 @@ class _GameScreenState extends State<GameScreen> {
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   suffixIcon: IconButton(
                     icon: const Icon(Icons.send),
-                    onPressed: (isMyTurn && !isSubmitting) ? _submitWord : null,
-                  ),
+                    onPressed:  (isMyTurn && !isSubmitting) ? _submitWord : null,
+                  )
                 ),
+                
               ),
 
               const SizedBox(height: 20),
