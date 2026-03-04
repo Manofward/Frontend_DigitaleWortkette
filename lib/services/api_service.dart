@@ -1,20 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_frontend/services/navigation.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
 
 class ApiService {
-  static const String baseUrl = 'http://172.16.34.16:5000/api/v1/dwk'; // for testing with more real endpoints
+  static const String baseUrl = 'http://172.16.34.34:5000/api/v1/dwk'; // for testing with more real endpoints
   //static const String baseUrl = 'http://172.22.48.1:5000/api/v1/dwk'; // for the docker 
   //static const String baseUrl = 'http://10.0.2.2:5000/api/v1/dwk'; // for local testing 
 
   // --------------------------
   // Basic GET
   // --------------------------
-  static Future<dynamic> get(String endpoint) async {
+  static Future<dynamic> get(String endpoint, String? auth_token) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/$endpoint'));
+      Map<String, String>? headers;
+
+      if (auth_token != null) {
+        headers = {
+          'Authorization': 'Bearer $auth_token',
+        };
+      }
+
+      final response = await http.get(Uri.parse('$baseUrl/$endpoint'), headers: headers);
 
       debugPrint("GET request to $endpoint - Status: ${response.statusCode}");
 
@@ -45,15 +54,25 @@ class ApiService {
   // --------------------------
   // Basic POST (form-data)
   // --------------------------
-  static Future<dynamic> post(String endpoint, Map<String, dynamic> data, {int maxRetries = 3}) async {
+  static Future<dynamic> post(String endpoint, Map<String, dynamic> data, String? auth_token, {int maxRetries = 3}) async {
     int attempts = 0;
 
     while (attempts < maxRetries) {
       try {
+        // Building headers
+        Map<String, String> headers = {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        };
+
+        if (auth_token != null) {
+          headers['Authorization'] = 'Bearer $auth_token';
+        }
+
+        // final post
         final response = await http.post(
           Uri.parse('$baseUrl/$endpoint'),
           body: data,
-          headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+          headers: headers,
         );
 
         debugPrint("POST request to $endpoint - Status: ${response.statusCode}");
@@ -96,7 +115,7 @@ class ApiService {
   // 1. Homepage
   // --------------------------
   static Future<List<dynamic>> homepageGet() async {
-    final res = await get("home");
+    final res = await get("home", null);
     
     if (res == null || res is List && res.isEmpty) {
       return [];
@@ -118,7 +137,7 @@ class ApiService {
   // 2. Host Lobby (CREATE LOBBY)
   // --------------------------
   static Future<Map<String, dynamic>> createLobby() async {
-    final res = await get("host/host-lobby");
+    final res = await get("host/host-lobby", null);
     debugPrint("createLobby result: $res");
 
     if (res == null || res is! Map<String, dynamic>) {
@@ -137,7 +156,7 @@ class ApiService {
   }
 
   static Future<void> updateHostLobbySetting(Map<String, dynamic> data) async {
-    await post("host/host-lobby", data);
+    await post("host/host-lobby", data, LobbySession.auth_token);
   }
 
   // --------------------------
@@ -146,11 +165,13 @@ class ApiService {
 
   static Future<Map<String, dynamic>> postJoinLobby(int lobbyID, int userID, int hostID, String username, bool ready) async {
     final res = await post("player/$lobbyID/join", {
-      "userID": userID.toString(), // to lok here why i need string here
-      "hostID": hostID.toString(),
-      "nickname": username,
-      "isPlayerReady": ready.toString()
-    });
+        "userID": userID.toString(), // to lok here why i need string here
+        "hostID": hostID.toString(),
+        "nickname": username,
+        "isPlayerReady": ready.toString()
+      },
+      null
+    );
 
     return {
       "userID": res["userID"],
@@ -165,7 +186,7 @@ class ApiService {
   // 4. Waiting Room
   // --------------------------
   static Future<Map<String, dynamic>> getLobby(int lobbyID) async {
-    final res = await get("lobby/$lobbyID/lobbySettings");
+    final res = await get("lobby/$lobbyID/lobbySettings", null);
 
     return {
       "chosenSubjectName": res["chosenSubject"],
@@ -176,7 +197,7 @@ class ApiService {
   }
 
   static Future<List<Map<String, dynamic>>> getLobbyPlayers(int lobbyID) async {
-    final res = await get("lobby/$lobbyID/playerList");
+    final res = await get("lobby/$lobbyID/playerList", null);
 
     if (res == null || res is! List) return [];
     debugPrint("$res");
@@ -196,9 +217,11 @@ class ApiService {
   // --------------------------
   static Future<bool> leaveGame(int lobbyID, int userID, int hostID) async {
     final res = await post("player/$lobbyID/leave", {
-      "userID": userID.toString(),
-      "hostID": hostID.toString(),
-    });
+        "userID": userID.toString(),
+        "hostID": hostID.toString(),
+      },
+      LobbySession.auth_token
+    );
 
     return res != null;
   }
@@ -206,7 +229,7 @@ class ApiService {
 
   // Get the current game session data (returns game state)
   static Future<Map<String, dynamic>> getGameSessionData(int lobbyID) async {
-    final res = await get("game/$lobbyID/session");
+    final res = await get("game/$lobbyID/session", null);
 
     if (res == null) {
       return {};
@@ -227,9 +250,11 @@ class ApiService {
   static Future<Map<String, dynamic>?> postGameSession(int lobbyID, String word, int? userID) async {
     try {
       final res = await post("game/$lobbyID/session", {
-        'wordInput': word.toString(),
-        'userID': userID.toString(),
-        });
+          'wordInput': word.toString(),
+          'userID': userID.toString(),
+        },
+        LobbySession.auth_token
+      );
 
       // post() returns Map<String, dynamic> or null, not http.Response
       if (res != null) {
@@ -242,7 +267,7 @@ class ApiService {
   }
 
   static Future<void> getSkipTurn(int lobbyID) async {
-    await get("game/$lobbyID/skip");
+    await get("game/$lobbyID/skip", LobbySession.auth_token);
   }
 
   // --------------------------

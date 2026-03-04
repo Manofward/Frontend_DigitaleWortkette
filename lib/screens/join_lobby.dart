@@ -1,18 +1,3 @@
-/*
-  |------------------------------|
-  |           AppBar             |
-  |------------------------------|
-  |Thema:                  $Thema|
-  |Spielzeit:          $spielzeit|
-  |Max Spieler:       $maxSpieler|
-  |------------------------------|
-  |Spieler:                      |
-  |Listview                      |
-  |------------------------------|
-  |             Navbar           |
-  |------------------------------|
-*/
-
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import '../../services/navigation.dart';
@@ -129,6 +114,7 @@ class _JoinLobbyPageState extends State<JoinLobbyPage> {
       LobbySession.lobbyID = lobbyID;
       LobbySession.userID = userID;
       LobbySession.hostID = hostID;
+      LobbySession.auth_token = res["auth_token"];
     }
   }
 

@@ -8,6 +8,7 @@ class LobbySession {
   static int? lobbyID;
   static int? userID;
   static int? hostID;
+  static String? auth_token;
 
   static bool get isActive => lobbyID != null;
 

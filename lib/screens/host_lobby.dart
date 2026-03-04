@@ -78,6 +78,10 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
           if(!hasInitialData && players.isNotEmpty) {
             hasPlayersData = true;
           }
+
+          if (LobbySession.auth_token == null && hasPlayersData) {
+            LobbySession.auth_token = players[0]['auth_token'];
+          }
         });
       },
     );
@@ -85,6 +89,7 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
 
   Future<void> _updateSetting(String key, dynamic value) async {
     await ApiService.updateHostLobbySetting({key: value.toString()});
+    
     if (key != "hasGameStarted" ){
       _startPlayerPolling(); // needed for now since when i push the dropdown i stop the poll
     }
