@@ -20,7 +20,7 @@ class FooterNavigationBar extends StatelessWidget {
     final buttons = [
       {'icon': Icons.home, 'label': 'Startseite', 'type': FooterButtonType.home},
       {'icon': Icons.settings, 'label': 'Einstellungen', 'type': FooterButtonType.settings},
-      {'icon': Icons.menu_book, 'label': 'Anleitung', 'type': FooterButtonType.manual},
+      {'icon': Icons.menu_book, 'label': 'Regeln', 'type': FooterButtonType.manual},
       {'icon': Icons.qr_code_scanner, 'label': 'Scanner', 'type': FooterButtonType.qrScanner},
     ];// QR-Code 
 
@@ -70,8 +70,10 @@ class FooterNavigationBar extends StatelessWidget {
         return type == FooterButtonType.home;
       case ScreenType.manual:
         return type == FooterButtonType.manual;
-      case ScreenType.game:
+      case ScreenType.game || ScreenType.results:
         return type == FooterButtonType.home;
+      case ScreenType.settings:
+        return type == FooterButtonType.settings;
       default:
         return false;
     }
