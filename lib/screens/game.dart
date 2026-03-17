@@ -93,11 +93,7 @@ class _GameScreenState extends State<GameScreen> {
         }
 
         if (isGameOver) {
-          NavigationService.navigate(
-            context,
-            ScreenType.results,
-            arguments: {"lobbyID": lobbyID},
-          );
+          createResults(context);
         }
       },
     );
@@ -178,6 +174,7 @@ class _GameScreenState extends State<GameScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Text("Wortkette zum Thema: $chosenSubject",
           style: AppTheme.lightTheme.textTheme.bodyLarge),
       ),
