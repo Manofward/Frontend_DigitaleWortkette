@@ -6,7 +6,7 @@ import 'dart:io';
 import 'dart:async';
 
 class ApiService {
-  static const String baseUrl = 'http://172.16.34.34:5000/api/v1/dwk'; // for testing with more real endpoints
+  static const String baseUrl = 'http://172.16.34.20:5000/api/v1/dwk'; // for testing with more real endpoints
   //static const String baseUrl = 'http://172.22.48.1:5000/api/v1/dwk'; // for the docker 
   //static const String baseUrl = 'http://10.0.2.2:5000/api/v1/dwk'; // for local testing 
 
@@ -273,14 +273,19 @@ class ApiService {
   // --------------------------
   // 8. Results
   // --------------------------
-  static Future<dynamic> getResults(String code) async {
+  static Future<Map<String, dynamic>> getResults(int? lobbyID) async {
+    final res = await get("game/$lobbyID/result", LobbySession.auth_token);
+
+    if (res == null || res is! Map<String, dynamic>) {
+      return {};
+    }
+
     return {
-      "winner": "Alice",
-      "scoreboard": [
-        {"username": "Alice", "points": 12},
-        {"username": "Bob", "points": 9},
-        {"username": "Charlie", "points": 8},
-      ]
+      "mostWordsPlayers": res["mostWordsPlayers"] ?? "",
+      "shortestWords": res["shortestWords"] ?? "",
+      "longestWords": res["longestWords"] ?? "",
+      "totalWords": res["totalWords"] ?? "",
+      "wordsPerPlayer": res["wordsPerPlayer"] ?? [],
     };
   }
 

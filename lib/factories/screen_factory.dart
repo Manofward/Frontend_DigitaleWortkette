@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_frontend/screens/settings.dart';
 
 // Screens
 import '../screens/home.dart';
@@ -7,6 +6,8 @@ import '../screens/game.dart';
 import '../screens/manual.dart';
 import '../screens/host_lobby.dart';
 import '../screens/join_lobby.dart';
+import '../screens/result.dart';
+import '../screens/settings.dart';
 
 enum ScreenType {
   home,
@@ -36,7 +37,7 @@ class ScreenFactory {
     ScreenType.game: (args) => GameScreen(lobbyData: args ?? {}), // Game state changes frequently
 
     // Placeholder screens for features not yet implemented
-    ScreenType.results: (_) => const _PlaceholderScreen(title: 'Results'),
+    ScreenType.results: (args) => ResultScreen(lobbyData: args ?? {}),
     ScreenType.settings: (_) => const SettingsPage(),
     ScreenType.scanQr: (_) => const _PlaceholderScreen(title: 'QR Scanner'),
   };

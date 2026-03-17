@@ -132,3 +132,20 @@ Future<void> joinLobby(BuildContext context, int lobbyID) async {
     );
   }
 }
+
+Future<void> createResults(BuildContext context) async {
+  final Map<String, dynamic> response = await ApiService.getResults(LobbySession.lobbyID);
+
+  if (response.isNotEmpty) {
+    // Successfully created lobby, navigate to host screen with lobby data
+    NavigationService.navigate(
+      context,
+      ScreenType.results,
+      arguments: response,
+    );
+  } else {
+    // Failed to create lobby, show error message
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('Error creating results')));
+  }
+}
