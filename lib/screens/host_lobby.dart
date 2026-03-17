@@ -105,6 +105,8 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
         content: SvgPicture.string(qrData, width: 400,),
       ),
     );
+
+    _startPlayerPolling();
   }
 
   @override
