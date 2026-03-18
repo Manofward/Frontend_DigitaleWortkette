@@ -10,12 +10,28 @@ dependencies:
   flutter:
     sdk: flutter
   http: ^1.2.0
-  pretty_qr_code: ^3.5.0
+  flutter_svg: ^2.0.9
+  app_links: ^3.4.5
+  permission_handler: ^12.0.1
+  loading_animation_widget: 
+  dart_jsonwebtoken: ^3.3.1
+  shared_preferences: ^2.2.2
+  square_progress_indicator: ^0.0.8
+  flutter_secure_storage: ^9.0.0
+  speech_to_text_field: ^0.1.3
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+
+flutter_launcher_icons:
+  android: true
+  image_path: "assets/icon.png"
+  adaptive_icon_foreground: "assets/icon.png"
+  adaptive_icon_background: "assets/icon.png"
+  min_sdk__android: 33
 
 flutter:
   uses-material-design: true

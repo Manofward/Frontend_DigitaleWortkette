@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/theme/app_theme.dart';
 
 // Button Centeredrtop
 class ButtonCentered extends StatelessWidget {
@@ -20,10 +21,10 @@ class ButtonCentered extends StatelessWidget {
       height: 60,
       child: ElevatedButton.icon(
         onPressed: onPressed,
-        icon: Icon(icon, size: 28),
+        icon: Icon(icon, size: 28, color: AppTheme.lightTheme.colorScheme.secondary),
         label: Text(
           label,
-          style: const TextStyle(fontSize: 18),
+          style: AppTheme.lightTheme.textTheme.bodyLarge?.copyWith(color: AppTheme.lightTheme.colorScheme.secondary),
         ),
       ),
     );
