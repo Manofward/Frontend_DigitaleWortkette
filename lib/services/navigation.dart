@@ -16,6 +16,7 @@ class LobbySession {
     lobbyID = null;
     userID = null;
     hostID = null;
+    auth_token = null;
   }
 }
 
