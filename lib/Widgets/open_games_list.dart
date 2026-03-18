@@ -36,6 +36,7 @@ class _OpenGamesListState extends State<OpenGamesList> {
             .map<Map<String, dynamic>>(
               (e) => Map<String, dynamic>.from(e as Map),
             )
+            .where((game) => game["hasGameStarted"] == false)
             .toList();
 
         // Update state only if the widget is still mounted (prevents errors)

@@ -130,6 +130,7 @@ class ApiService {
       "lobbyID": e["lobbyID"],
       "topic": e["subjectName"],
       "players": e["maxPlayers"],
+      "hasGameStarted": e["hasGameStarted"],
     }).toList();
   }
 
@@ -286,19 +287,6 @@ class ApiService {
       "longestWords": res["longestWords"] ?? "",
       "totalWords": res["totalWords"] ?? "",
       "wordsPerPlayer": res["wordsPerPlayer"] ?? [],
-    };
-  }
-
-  // --------------------------
-  // 9. Manual
-  // --------------------------
-  static Future<dynamic> getManual() async {
-    return {
-      "sections": [
-        {"title": "Einleitung", "content": "Willkommen zur Digitalen Wortkette!"},
-        {"title": "Regeln", "content": "Bilde ein Wort mit dem letzten Buchstaben des vorherigen."},
-        {"title": "Spielende", "content": "Das Spiel endet, wenn niemand mehr ein Wort findet."},
-      ]
     };
   }
 }
