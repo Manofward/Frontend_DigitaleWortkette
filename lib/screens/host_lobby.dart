@@ -95,10 +95,10 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
     }
   }
 
-  void _showQrCode() {
+  void _showQrCode() async {
     final qrData = widget.data['generatedQRCode'] ?? lobbyID.toString();
 
-    showDialog(
+    await showDialog(
       context: context,
       builder: (_) => AlertDialog(
         title: const Text("QR-Code"),
