@@ -1,6 +1,22 @@
 import 'package:flutter/material.dart';
 
+// RanklistHeader
+// Hier wird der Header für die RankList erstellt und zum Build context der Result Seite zurückgegeben
+Widget buildHeader(TextStyle? style) {
+  return Padding(
+    padding: const EdgeInsets.only(top: 6, bottom: 1),
+    child: Row(
+      children: [
+        SizedBox(width: 40, child: Text("Rang", style: style)),
+        Expanded(child: Text("Nutzername", textAlign: TextAlign.center, style: style)),
+        SizedBox(width: 60, child: Text("Punkte", textAlign: TextAlign.right, style: style)),
+      ],
+    ),
+  );
+}
 
+// RankListItem
+// Hier wird die List gebaut und return in den Allgemeinen Build context von der Result Seite
 class RankListItem extends StatelessWidget {
   final int rank;
   final String username;
@@ -18,7 +34,7 @@ class RankListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.only(bottom: 6),
       child: Row(
         children: [
           // Platzierung links

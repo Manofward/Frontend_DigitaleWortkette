@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_frontend/services/api_service.dart';
 import '../factories/screen_factory.dart';
 import '../services/navigation.dart';
-import '../Widgets/footer_nav_bar.dart';
 import '../utils/theme/app_theme.dart';
 import '../utils/theme/ranklist_themes.dart';
+
+// Widget Imports
+import '../Widgets/footer_nav_bar.dart';
 import '../Widgets/rankslistitem.dart';
+import '../Widgets/custom_scaffold.dart';
+import '../Widgets/build_achievement_text.dart';
 
 class ResultScreen extends StatefulWidget {
   final Map<String, dynamic> lobbyData;
@@ -31,12 +36,13 @@ class _ResultScreenState extends State<ResultScreen> {
     super.initState();
 
     final data = widget.lobbyData;
-    mostWordsPlayers = data["mostWordsPlayers"];
-    totalWords = data["totalWords"];
-    longestWords = data["longestWords"];
-    shortestWords = data["shortestWords"];
 
     wordsPerPlayer = List<dynamic>.from(data["wordsPerPlayer"]);
+
+    mostWordsPlayers = data["mostWordsPlayers"];
+    totalWords = data["totalWords"];
+    shortestWords = data["shortestWords"];
+    longestWords = data["longestWords"];
   }
 
   @override
@@ -44,7 +50,7 @@ class _ResultScreenState extends State<ResultScreen> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const Text('Ergebniss')
+        title: const Text('Ergebnis')
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -57,6 +63,9 @@ class _ResultScreenState extends State<ResultScreen> {
                 text: TextSpan(
                   style: AppTheme.lightTheme.textTheme.bodyLarge,
                   children: [
+                    // Insgesamte Anzahl der Worte
+                    TextSpan(text: 'Es wurden: $totalWords Wörter gefunden.\n\n'),
+
                     TextSpan(
                       text: 'Rangliste der Spieler mit den Meisten Punkten: ',
                       style: AppTheme.lightTheme.textTheme.bodyLarge
@@ -65,74 +74,90 @@ class _ResultScreenState extends State<ResultScreen> {
                 ),
               ),
 
-              //Rangliste der besten Spieler
-              SizedBox(
-                height: 300,
-                child: ListView.builder(
-                  //reverse: true,
-                  itemCount: wordsPerPlayer.length,
-                  itemBuilder: (context, index) {
-                    final countPoints = wordsPerPlayer[wordsPerPlayer.length - 1 - index];
+              Column(
+                children:[
+                  //header which shows (Rang    Nutzername      Punkte)
+                  buildHeader(AppTheme.lightTheme.textTheme.bodySmall),
 
-                    /*This sets the style of the ranklist so that the following is:
-                      first player has golden color
-                      second player has silver
-                      third player has bronze
-                      the rest players have a default
-                    */
-                    final style = index < RanklistThemes.rankStyles.length
-                        ? RanklistThemes.rankStyles[index]
-                        : RanklistThemes.defaultStyle;
+                  //Rangliste der besten Spieler
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 300),
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      physics: const ClampingScrollPhysics(),
+                      itemCount: wordsPerPlayer.length,
+                      itemBuilder: (context, index) {
+                        final countPoints = wordsPerPlayer[wordsPerPlayer.length - 1 - index];
 
-                    return RankListItem(
-                      rank: index + 1,
-                      username: countPoints['username'],
-                      points: countPoints['count'],
-                      style: style,
-                    );
-                  },
-                ),
+                        /*This sets the style of the ranklist so that the following is:
+                          first player has golden color
+                          second player has silver
+                          third player has bronze
+                          the rest players have a default
+                        */
+                        final style = index < RanklistThemes.rankStyles.length
+                            ? RanklistThemes.rankStyles[index]
+                            : RanklistThemes.defaultStyle;
+                        
+                        return RankListItem(
+                          rank: index + 1,
+                          username: countPoints['username'],
+                          points: countPoints['count'],
+                          style: style,
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
-
-              const SizedBox(height: 20),
 
               RichText(
                 text: TextSpan(
                   style: AppTheme.lightTheme.textTheme.bodyLarge,
                   children: [
-                    // Insgesamte Anzahl der Worte
-                    TextSpan(text: 'Es wurden: $totalWords Wörter gefunden.\n'),
-
-                    TextSpan(text: 'Davon hatten diese Spieler Erfolge:\n\n'),
+                    TextSpan(text: 'Diese Erfolge wurden gesammelt:\n\n'),
 
                     // Längstes Wort in der Runde
-                    // Muss vom backend noch den Usernamen bekommen
-                    const TextSpan(text: "Das Längste Wort hatte: "),
-                    TextSpan(
-                      text: longestWords[0], // ändern zu dem usernamen
-                      style: TextStyle(color: AppTheme.lightTheme.colorScheme.primary),
+                    buildAchievementText(
+                      players: longestWords,
+                      singularPrefix: 'Das längste Wort wurde von\n',
+                      pluralPrefix: 'Die längsten Wörter wurden von\n',
+                      suffix: ' eingegeben.\n\n',
+                      highlightStyle: TextStyle(color: AppTheme.lightTheme.colorScheme.primary),
                     ),
-
-                    const TextSpan(text: '\n\n'),
 
                     // Shortest Word from user
-                    const TextSpan(text: 'Das kürzeste Wort hatte: '),
-                    TextSpan(
-                      text: shortestWords[0],
-                      style: TextStyle(color: AppTheme.lightTheme.colorScheme.primary),
+                    buildAchievementText(
+                      players: shortestWords,
+                      singularPrefix: 'Das kürzeste Wort wurde von\n',
+                      pluralPrefix: 'Die kürzesten Wörter wurden von\n',
+                      suffix: ' eingegeben.\n\n',
+                      highlightStyle: TextStyle(color: AppTheme.lightTheme.colorScheme.primary),
                     ),
-
-                    const TextSpan(text: '\n\n'),
 
                     //mostWordsPlayers
-                    const TextSpan(text: 'Die meisten Wörter sind '),
-                    TextSpan(
-                      text: mostWordsPlayers[0],
-                      style: TextStyle(color: AppTheme.lightTheme.colorScheme.primary),
+                    buildAchievementText(
+                      players: mostWordsPlayers,
+                      singularPrefix: 'Die meisten Wörter sind\n',
+                      pluralPrefix: 'Die meisten Wörter sind\n',
+                      suffix: ' eingefallen.',
+                      highlightStyle: TextStyle(color: AppTheme.lightTheme.colorScheme.primary),
                     ),
-                    const TextSpan(text: ' eingefallen.'),
                   ],
                 ),
+              ),
+
+              const SizedBox(height: 10),
+
+              // Button um zur homepage zurückzukehren
+              ButtonCentered(
+                label: 'Zurück zur Startseite',
+                icon: Icons.home,
+                onPressed: () => {
+                  ApiService.leaveGame(LobbySession.lobbyID!, LobbySession.userID!, LobbySession.hostID!),
+                  LobbySession.clear(),
+                  NavigationService.goHome(context)
+                }, // Calls function to create and navigate to new game
               ),
             ],
           ),
