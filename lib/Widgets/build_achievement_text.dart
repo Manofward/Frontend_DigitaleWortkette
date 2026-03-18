@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/theme/app_theme.dart';
 
 InlineSpan buildAchievementText({
   required List<dynamic> players,
@@ -31,8 +32,20 @@ InlineSpan buildAchievementText({
   return TextSpan(
     children: [
       TextSpan(text: isPlural ? pluralPrefix : singularPrefix),
-      TextSpan(text: formattedPlayers, style: highlightStyle),
-      TextSpan(text: suffix),
+      TextSpan(
+        children: [
+          WidgetSpan(
+            child: Padding(
+              padding: const EdgeInsets.only(left: 12),
+              child: Text('• $formattedPlayers', 
+                style: AppTheme.lightTheme.textTheme.bodyLarge!.copyWith(
+                  color: AppTheme.lightTheme.colorScheme.primary),
+              ),
+            ),
+          ),
+        ],
+      ),
+      TextSpan(text: '\n$suffix'),
     ],
   );
 }

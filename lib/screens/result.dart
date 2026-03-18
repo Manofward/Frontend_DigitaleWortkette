@@ -43,6 +43,7 @@ class _ResultScreenState extends State<ResultScreen> {
     totalWords = data["totalWords"];
     shortestWords = data["shortestWords"];
     longestWords = data["longestWords"];
+    wordsPerPlayer.sort((a, b) => b['count'].compareTo(a['count']));
   }
 
   @override
@@ -87,7 +88,7 @@ class _ResultScreenState extends State<ResultScreen> {
                       physics: const ClampingScrollPhysics(),
                       itemCount: wordsPerPlayer.length,
                       itemBuilder: (context, index) {
-                        final countPoints = wordsPerPlayer[wordsPerPlayer.length - 1 - index];
+                        final countPoints = wordsPerPlayer[index];
 
                         /*This sets the style of the ranklist so that the following is:
                           first player has golden color
@@ -122,7 +123,7 @@ class _ResultScreenState extends State<ResultScreen> {
                       players: longestWords,
                       singularPrefix: 'Das längste Wort wurde von\n',
                       pluralPrefix: 'Die längsten Wörter wurden von\n',
-                      suffix: ' eingegeben.\n\n',
+                      suffix: 'eingegeben.\n\n',
                       highlightStyle: TextStyle(color: AppTheme.lightTheme.colorScheme.primary),
                     ),
 
@@ -131,7 +132,7 @@ class _ResultScreenState extends State<ResultScreen> {
                       players: shortestWords,
                       singularPrefix: 'Das kürzeste Wort wurde von\n',
                       pluralPrefix: 'Die kürzesten Wörter wurden von\n',
-                      suffix: ' eingegeben.\n\n',
+                      suffix: 'eingegeben.\n\n',
                       highlightStyle: TextStyle(color: AppTheme.lightTheme.colorScheme.primary),
                     ),
 
@@ -140,7 +141,7 @@ class _ResultScreenState extends State<ResultScreen> {
                       players: mostWordsPlayers,
                       singularPrefix: 'Die meisten Wörter sind\n',
                       pluralPrefix: 'Die meisten Wörter sind\n',
-                      suffix: ' eingefallen.',
+                      suffix: 'eingefallen.',
                       highlightStyle: TextStyle(color: AppTheme.lightTheme.colorScheme.primary),
                     ),
                   ],
